@@ -10,66 +10,66 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
-  <header>
-    <h1>Disney+ Dual Subtitles</h1>
-    <p class="hero-subtitle">A high-performance Chrome extension for a premium dual-subtitle experience. Designed for cinematic stability and perfect synchronization.</p>
-    <a href="https://github.com/renzhe/disney-plus-dual-subtitles" class="btn">View on GitHub</a>
-  </header>
+  <div class="main-container">
+    <div class="lang-switch">
+      English | <span style="color: #4a6cf7; cursor: pointer;">中文</span>
+    </div>
 
-  <section class="section">
-    <h2>🏆 Why Choose Us?</h2>
+    <header>
+      <div style="font-size: 3rem; margin-bottom: 1rem;">📺</div>
+      <h1>Disney+ Dual Subtitles</h1>
+      <p class="hero-subtitle">A high-performance Chrome extension for a premium dual-subtitle experience on Disney+.</p>
+    </header>
+
+    <div class="section-title">✨ Key Features</div>
     <div class="features-grid">
       <div class="feature-card">
-        <h3>♾️ Infinite Streaming</h3>
-        <p>Never lose subtitles during long movies. Our engine automatically handles Disney's sliding window manifests, ensuring continuous playback beyond the 200s cutoff.</p>
+        <h3>♾️ Stream Stability</h3>
+        <ul>
+          <li>Handles "Sliding Window" manifests automatically</li>
+          <li>Continuous playback beyond 200s cutoff</li>
+          <li>Absolute VTT Anchoring for perfect timing</li>
+        </ul>
       </div>
       <div class="feature-card">
-        <h3>🎯 Zero-Jitter Display</h3>
-        <p>A stable, dual-slot layout prevents subtitles from shaking or jumping when line counts change. Clean, professional, and cinematic.</p>
+        <h3>🎯 Visual Excellence</h3>
+        <ul>
+          <li>Zero-Jitter, stable dual-slot layout</li>
+          <li>No subtitle "jumping" or shaking</li>
+          <li>Native Fullscreen support</li>
+        </ul>
       </div>
       <div class="feature-card">
         <h3>⚡ High-Precision Sync</h3>
-        <p>Triple-tier synchronization engine (Shadow DOM + Sticky Offset + Visual Snap) keeps subtitles frame-perfectly aligned with the video.</p>
+        <ul>
+          <li>Sticky Offset eliminates UI clock jitter</li>
+          <li>Visual Snap self-healing mechanism</li>
+          <li>Frame-perfect Shadow DOM extraction</li>
+        </ul>
       </div>
       <div class="feature-card">
-        <h3>🌍 Professional i18n</h3>
-        <p>Full localization for 7 languages including English, Chinese, Japanese, and more. Precise language variant detection (e.g., zh-hk, zh-hans).</p>
-      </div>
-      <div class="feature-card">
-        <h3>🎨 Advanced Styling</h3>
-        <p>Complete control over font size, colors, background opacity, and weight. Changes apply instantly without page reloads.</p>
-      </div>
-      <div class="feature-card">
-        <h3>🛠️ Hot Reloading</h3>
-        <p>Tweak your settings in the popup and see them live immediately. No more refreshing the page every time you change a color.</p>
+        <h3>🎨 Full Customization</h3>
+        <ul>
+          <li>Adjust colors, size, weight & background</li>
+          <li>Live preview with Hot Reloading</li>
+          <li>7 languages localization support</li>
+        </ul>
       </div>
     </div>
-  </section>
 
-  <section class="section">
-    <h2>🛠 Advanced Architecture</h2>
-    <div class="feature-card">
-      <h3>Absolute VTT Anchoring</h3>
-      <p>We solve Disney's manifest quirks by parsing <code>X-TIMESTAMP-MAP</code> in VTT headers. Every segment is anchored to the movie's global timeline, ignoring relative offsets that cause sync drift in other extensions.</p>
-      <div class="code-block">
-        X-TIMESTAMP-MAP=MPEGTS:1791000,LOCAL:00:00:00.000
-      </div>
+    <div class="section-title">🚀 Install Now</div>
+    <div class="install-section">
+      <a href="https://github.com/renzhe/disney-plus-dual-subtitles" class="btn">
+        <span style="font-size: 1.2rem;">📦</span> View on GitHub Repo
+      </a>
+      <a href="#" class="btn btn-secondary">
+        <span style="font-size: 1.2rem;">📖</span> Read Documentation
+      </a>
     </div>
-  </section>
 
-  <section class="section">
-    <h2>🚀 Installation</h2>
-    <ol>
-      <li>Download the latest release from GitHub.</li>
-      <li>Open Chrome and navigate to <code>chrome://extensions/</code>.</li>
-      <li>Enable <strong>Developer Mode</strong>.</li>
-      <li>Click <strong>Load unpacked</strong> and select the project folder.</li>
-      <li>Open Disney+ and start your dual-language journey!</li>
-    </ol>
-  </section>
-
-  <footer>
-    <p>&copy; 2026 Disney+ Dual Subtitles Project. Created for the community.</p>
-  </footer>
+    <div class="footer">
+      <p>&copy; 2026 Disney+ Dual Subtitles Project. Released under MIT License.</p>
+    </div>
+  </div>
 </body>
 </html>
