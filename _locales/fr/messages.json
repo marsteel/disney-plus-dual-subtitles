@@ -1,0 +1,43 @@
+{
+  "appName": {
+    "message": "Disney+ Double Sous-titres",
+    "description": "Nom de l'extension."
+  },
+  "appDesc": {
+    "message": "Active le double sous-titrage haute performance sur Disney+ avec synchronisation de précision.",
+    "description": "Description de l'extension."
+  },
+  "primaryLangLabel": {
+    "message": "Langue principale\u00a0:",
+    "description": "Label pour la liste déroulante de la langue principale."
+  },
+  "secondaryLangLabel": {
+    "message": "Langue secondaire\u00a0:",
+    "description": "Label pour la liste déroulante de la langue secondaire."
+  },
+  "saveBtn": {
+    "message": "Enregistrer",
+    "description": "Texte pour le bouton d'enregistrement."
+  },
+  "syncToast": {
+    "message": "Sync Sous-titres\u00a0: $delay$",
+    "description": "Message toast pour l'ajustement de la synchronisation des sous-titres.",
+    "placeholders": {
+      "delay": {
+        "content": "$1"
+      }
+    }
+  },
+  "delayed": {
+    "message": "Retardé",
+    "description": "Texte pour l'état retardé."
+  },
+  "advanced": {
+    "message": "Avancé",
+    "description": "Texte pour l'état avancé."
+  },
+  "off": {
+    "message": "Désactivé",
+    "description": "Option pour désactiver une piste de sous-titres."
+  }
+}

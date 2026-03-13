@@ -1,0 +1,35 @@
+/* Styling for the secondary subtitle overlay */
+.disney-dual-subtitles-container {
+  position: fixed; /* Fixed to the viewport */
+  bottom: 10%; /* Adjust based on Disney+ player UI */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+  text-align: center;
+  pointer-events: none;
+  z-index: 2147483647; /* Maximum possible z-index to stay above everything */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.disney-dual-subtitles-text {
+  font-family: inherit;
+  font-weight: bold;
+  background-color: transparent;
+  padding: 0px 4px;
+  border-radius: 4px;
+  text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0px 0px 4px rgba(0,0,0,0.8);
+  line-height: normal;
+}
+
+.disney-dual-subtitles-text.primary {
+  color: #ffffff;
+  font-size: 32px;
+}
+
+.disney-dual-subtitles-text.secondary {
+  color: #ffcc00; /* Yellowish for distinction */
+  font-size: 24px;
+}

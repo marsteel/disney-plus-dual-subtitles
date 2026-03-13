@@ -1,0 +1,47 @@
+{
+  "appName": {
+    "message": "Disney+ 双语字幕",
+    "description": "扩展名称。"
+  },
+  "appDesc": {
+    "message": "在 Disney+ 上启用高性能双语字幕，支持精确同步。",
+    "description": "扩展描述。"
+  },
+  "primaryLangLabel": {
+    "message": "主语言：",
+    "description": "主语言下拉菜单标签。"
+  },
+  "secondaryLangLabel": {
+    "message": "副语言：",
+    "description": "副语言下拉菜单标签。"
+  },
+  "saveBtn": {
+    "message": "保存",
+    "description": "保存按钮文本。"
+  },
+  "resetBtn": {
+    "message": "重置",
+    "description": "重置按钮文本。"
+  },
+  "syncToast": {
+    "message": "字幕同步：$delay$",
+    "description": "字幕同步调整的提示消息。",
+    "placeholders": {
+      "delay": {
+        "content": "$1"
+      }
+    }
+  },
+  "delayed": {
+    "message": "延迟",
+    "description": "延迟状态文本。"
+  },
+  "advanced": {
+    "message": "提前",
+    "description": "提前状态文本。"
+  },
+  "off": {
+    "message": "关闭",
+    "description": "禁用字幕轨道的选项。"
+  }
+}

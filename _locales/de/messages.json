@@ -1,0 +1,43 @@
+{
+  "appName": {
+    "message": "Disney+ Doppel-Untertitel",
+    "description": "Name der Erweiterung."
+  },
+  "appDesc": {
+    "message": "Ermöglicht leistungsstarke Doppel-Untertitel auf Disney+ mit präziser Synchronisation.",
+    "description": "Beschreibung der Erweiterung."
+  },
+  "primaryLangLabel": {
+    "message": "Primäre Sprache:",
+    "description": "Beschriftung für das Dropdown-Menü der primären Sprache."
+  },
+  "secondaryLangLabel": {
+    "message": "Sekundäre Sprache:",
+    "description": "Beschriftung für das Dropdown-Menü der sekundären Sprache."
+  },
+  "saveBtn": {
+    "message": "Speichern",
+    "description": "Text für die Speicherschaltfläche."
+  },
+  "syncToast": {
+    "message": "Untertitel-Sync: $delay$",
+    "description": "Toast-Nachricht für die Anpassung der Untertitel-Synchronisation.",
+    "placeholders": {
+      "delay": {
+        "content": "$1"
+      }
+    }
+  },
+  "delayed": {
+    "message": "Verzögert",
+    "description": "Text für den verzögerten Zustand."
+  },
+  "advanced": {
+    "message": "Vorgezogen",
+    "description": "Text für den vorgezogenen Zustand."
+  },
+  "off": {
+    "message": "Aus",
+    "description": "Option zum Deaktivieren einer Untertitelspur."
+  }
+}
