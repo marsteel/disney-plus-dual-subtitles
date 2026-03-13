@@ -18,52 +18,56 @@
     <header>
       <div style="font-size: 3rem; margin-bottom: 1rem;">🛡️</div>
       <h1>Privacy Policy</h1>
-      <p class="hero-subtitle">Your privacy is our priority. This extension is designed to be fully local and data-safe.</p>
+      <p class="hero-subtitle">Disney+ Dual Subtitles is committed to protecting your privacy. This policy explains how we handle your data.</p>
+      <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 10px;">Last Updated: March 13, 2026</p>
     </header>
 
-    <div class="section-title">✨ Data Collection</div>
+    <div class="section-title">✨ Overview</div>
+    <p style="color: var(--text-muted); line-height: 1.8;">Disney+ Dual Subtitles is a browser extension designed to provide a premium dual-subtitle experience. We do NOT collect, store, or transmit any personal data to our servers. We do not have servers.</p>
+
+    <div class="section-title">📦 What We Store Locally</div>
+    <div class="feature-card" style="border-left-color: var(--accent-teal); margin-bottom: 20px;">
+      <p style="color: var(--text-muted); margin-bottom: 12px;">The following data is stored locally in your browser using <code>chrome.storage.sync</code>:</p>
+      <ul>
+        <li style="color: var(--text-muted); margin-bottom: 8px;"><b>Language Settings:</b> Selected primary and secondary languages.</li>
+        <li style="color: var(--text-muted); margin-bottom: 8px;"><b>Styling Preferences:</b> Font color, size, background color, and weight settings.</li>
+        <li style="color: var(--text-muted); margin-bottom: 8px;"><b>Extension State:</b> Enabled/disabled toggle status.</li>
+      </ul>
+      <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 12px;">All settings are stored locally and synced across your devices via browser sync (if enabled). We never have access to this data.</p>
+    </div>
+
+    <div class="section-title">📡 Third-Party Services</div>
+    <p style="color: var(--text-muted); line-height: 1.8;">When you use Disney+ Dual Subtitles:</p>
+    <ul style="color: var(--text-muted); line-height: 1.8;">
+      <li>Subtitle fragments are downloaded directly from Disney+ servers to your browser.</li>
+      <li>We do not intercept, store, or have access to your viewing data or subtitle content.</li>
+      <li>No data is sent to any third-party AI or translation services.</li>
+    </ul>
+
+    <div class="section-title">🔧 Permissions Explained</div>
     <div class="features-grid">
       <div class="feature-card">
-        <h3>Zero Tracking</h3>
-        <ul>
-          <li>We do not collect any personal information.</li>
-          <li>No usage metrics or analytics are gathered.</li>
-          <li>We never sell or share your data.</li>
-        </ul>
+        <h3>storage</h3>
+        <p style="font-size: 0.9rem; color: var(--text-muted);">To save your language preferences and custom subtitle styles locally in your browser.</p>
       </div>
       <div class="feature-card">
-        <h3>Local Processing</h3>
-        <ul>
-          <li>All subtitle merging happens on your device.</li>
-          <li>Calculated offsets are never uploaded.</li>
-          <li>Your viewing history remains private.</li>
-        </ul>
+        <h3>host_permissions</h3>
+        <p style="font-size: 0.9rem; color: var(--text-muted);">To access <code>*.disneyplus.com</code> to inject dual subtitles and fetch necessary subtitle segments.</p>
       </div>
     </div>
 
-    <div class="section-title">🛠 Storage & Requests</div>
-    <div class="features-grid">
-      <div class="feature-card" style="border-left-color: var(--accent-blue);">
-        <h3>Chrome Storage</h3>
-        <p>Your settings (language preferences, custom styles) are stored using <code>chrome.storage.sync</code> solely to sync your preferences across your own devices.</p>
-      </div>
-      <div class="feature-card" style="border-left-color: var(--accent-blue);">
-        <h3>Network Requests</h3>
-        <p>The extension only makes requests to Disney+ servers to download subtitle fragments required for display. These requests contain no identifying information from our extension.</p>
-      </div>
-    </div>
-
-    <div class="section-title">🚀 Open Source</div>
-    <p style="color: var(--text-muted); margin-bottom: 40px;">This extension is open-source. You can audit the code at any time to verify our privacy claims.</p>
+    <div class="section-title">🚀 Data Security & Open Source</div>
+    <p style="color: var(--text-muted); line-height: 1.8; margin-bottom: 24px;">All settings are stored using the browser's built-in storage. Since Disney+ Dual Subtitles is open source, you can review the complete source code on GitHub to verify our privacy claims at any time.</p>
     
     <div class="install-section">
       <a href="https://github.com/renzhe/disney-plus-dual-subtitles" class="btn">
-        <span style="font-size: 1.2rem;">📦</span> Audit Code on GitHub
+        <span style="font-size: 1.2rem;">📦</span> View on GitHub Repo
       </a>
     </div>
 
     <div class="footer">
       <p>&copy; 2026 Disney+ Dual Subtitles Project. Released under MIT License.</p>
+      <p style="margin-top: 10px; font-size: 0.85rem;">For privacy questions, please open an issue on our GitHub repository.</p>
     </div>
   </div>
 </body>
