@@ -42,8 +42,14 @@ function resetSubtitleState() {
   processedSegments.clear();
   subtitleBaseUrls = { primary: [], secondary: [] };
   if (window.disneySegmentOffsets) window.disneySegmentOffsets = {};
-  // Avoid resetting disneyStableOffset here as it might be useful for the next video
-  // unless the next video has a completely different timeline start.
+  
+  if (subtitleOverlay) {
+    subtitleOverlay.style.visibility = 'hidden';
+    const prim = subtitleOverlay.querySelector('#disney-dual-primary');
+    const sec = subtitleOverlay.querySelector('#disney-dual-secondary');
+    if (prim) prim.innerHTML = '';
+    if (sec) sec.innerHTML = '';
+  }
 }
 
 // Inject interceptor script into the main page
@@ -569,7 +575,10 @@ function setupSync() {
       // Handle cases where Disney+ navigates away and destroys the video or our overlay
       const enforceOverlayId = setInterval(() => {
          const activeVid = getActiveVideo();
-         if (!activeVid) return;
+         if (!activeVid) {
+             if (subtitleOverlay) subtitleOverlay.style.visibility = 'hidden';
+             return;
+         }
 
          // Determine where the overlay should live (fullscreen support)
          const fsElement = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
@@ -759,7 +768,10 @@ function setupSync() {
         if (!extensionConfig.enabled) return;
         
         const activeVideo = getActiveVideo();
-        if (!activeVideo) return;
+        if (!activeVideo) {
+            if (subtitleOverlay) subtitleOverlay.style.visibility = 'hidden';
+            return;
+        }
 
         // Continuously calibrate offset using high-precision UI time if available
         const uiTime = guessUITime();
