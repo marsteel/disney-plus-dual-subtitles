@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://marsteel.github.io/disney-plus-dual-subtitles/sitemap.xml
+Sitemap: https://disney-plus-dual-subtitles.magang.name/sitemap.xml
