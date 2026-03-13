@@ -47,6 +47,18 @@ body {
   font-size: 0.85rem;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   color: var(--text-muted);
+  z-index: 100;
+}
+
+.lang-switch a {
+  text-decoration: none;
+  color: var(--text-muted);
+  margin: 0 2px;
+}
+
+.lang-switch a.active {
+  color: var(--accent-blue);
+  font-weight: bold;
 }
 
 header {

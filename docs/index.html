@@ -12,7 +12,15 @@
 <body>
   <div class="main-container">
     <div class="lang-switch">
-      English | <span style="color: #4a6cf7; cursor: pointer;">中文</span>
+      <a href="index.html" class="active">EN</a> | 
+      <a href="zh-hans/index.html">简</a> | 
+      <a href="zh-hant/index.html">繁</a> | 
+      <a href="ja/index.html">日</a> | 
+      <a href="ko/index.html">한</a> | 
+      <a href="nl/index.html">NL</a> | 
+      <a href="fr/index.html">FR</a>
+      <span style="margin-left: 10px; opacity: 0.8;">🌐</span>
+      <div id="google_translate_element" style="display:inline-block; vertical-align: middle;"></div>
     </div>
 
     <header>
@@ -74,5 +82,11 @@
       </p>
     </div>
   </div>
+  <script type="text/javascript">
+    function googleTranslateElementInit() {
+      new google.translate.TranslateElement({pageLanguage: 'en', layout: google.translate.TranslateElement.InlineLayout.SIMPLE}, 'google_translate_element');
+    }
+  </script>
+  <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body>
 </html>
