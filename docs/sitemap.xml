@@ -24,6 +24,11 @@
     <xhtml:link rel="alternate" hreflang="fr" href="https://disney-plus-dual-subtitles.magang.name/fr/privacy.html"/>
     <priority>0.5</priority>
   </url>
+  <url>
+    <loc>https://disney-plus-dual-subtitles.magang.name/changelog.html</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://disney-plus-dual-subtitles.magang.name/changelog.html"/>
+    <priority>0.3</priority>
+  </url>
 
   <!-- Simplified Chinese -->
   <url>
