@@ -13,6 +13,8 @@
   <div class="main-container">
     <div class="lang-switch">
       <a href="index.html" style="text-decoration: none; color: var(--text-muted);">← Back to Home</a>
+      <span style="margin-left: 10px; opacity: 0.8;">🌐</span>
+      <div id="google_translate_element" style="display:inline-block; vertical-align: middle;"></div>
     </div>
 
     <header>
@@ -60,5 +62,11 @@
       
     </div>
   </div>
+  <script type="text/javascript">
+    function googleTranslateElementInit() {
+      new google.translate.TranslateElement({pageLanguage: 'en', layout: google.translate.TranslateElement.InlineLayout.SIMPLE}, 'google_translate_element');
+    }
+  </script>
+  <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body>
 </html>
