@@ -1,0 +1,47 @@
+{
+  "appName": {
+    "message": "Disney+ Dual Subtitles",
+    "description": "The name of the extension."
+  },
+  "appDesc": {
+    "message": "Enables high-performance dual subtitles on Disney+ with precision synchronization.",
+    "description": "The description of the extension."
+  },
+  "primaryLangLabel": {
+    "message": "Primary Lang:",
+    "description": "Label for the primary language dropdown."
+  },
+  "secondaryLangLabel": {
+    "message": "Secondary Lang:",
+    "description": "Label for the secondary language dropdown."
+  },
+  "saveBtn": {
+    "message": "Save",
+    "description": "Text for the save button."
+  },
+  "resetBtn": {
+    "message": "Reset",
+    "description": "Text for the reset button."
+  },
+  "syncToast": {
+    "message": "Subtitle Sync: $delay$",
+    "description": "Toast message for subtitle sync adjustment.",
+    "placeholders": {
+      "delay": {
+        "content": "$1"
+      }
+    }
+  },
+  "delayed": {
+    "message": "Delayed",
+    "description": "Text for delayed state."
+  },
+  "advanced": {
+    "message": "Advanced",
+    "description": "Text for advanced state."
+  },
+  "off": {
+    "message": "Off",
+    "description": "Option to disable a subtitle track."
+  }
+}

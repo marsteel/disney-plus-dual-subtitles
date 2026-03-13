@@ -1,0 +1,43 @@
+{
+  "appName": {
+    "message": "Disney+ Dubbele Ondertiteling",
+    "description": "De naam van de extensie."
+  },
+  "appDesc": {
+    "message": "Maakt hoogwaardige dubbele ondertiteling op Disney+ mogelijk met nauwkeurige synchronisatie.",
+    "description": "De beschrijving van de extensie."
+  },
+  "primaryLangLabel": {
+    "message": "Primaire Taal:",
+    "description": "Label voor de dropdown van de primaire taal."
+  },
+  "secondaryLangLabel": {
+    "message": "Secondaire Taal:",
+    "description": "Label voor de dropdown van de secondaire taal."
+  },
+  "saveBtn": {
+    "message": "Opslaan",
+    "description": "Tekst voor de opslaan-knop."
+  },
+  "syncToast": {
+    "message": "Ondertiteling Sync: $delay$",
+    "description": "Toastbericht voor aanpassing van ondertitelsynchronisatie.",
+    "placeholders": {
+      "delay": {
+        "content": "$1"
+      }
+    }
+  },
+  "delayed": {
+    "message": "Vertraagd",
+    "description": "Tekst voor vertraagde staat."
+  },
+  "advanced": {
+    "message": "Vervroegd",
+    "description": "Tekst voor vervroegde staat."
+  },
+  "off": {
+    "message": "Uit",
+    "description": "Optie om een ondertitelspoor uit te schakelen."
+  }
+}

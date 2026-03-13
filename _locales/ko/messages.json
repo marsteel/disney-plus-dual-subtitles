@@ -1,0 +1,43 @@
+{
+  "appName": {
+    "message": "Disney+ 이중 자막",
+    "description": "확장 프로그램 이름。"
+  },
+  "appDesc": {
+    "message": "정밀한 동기화 기능을 통해 Disney+에서 고성능 이중 자막을 제공합니다.",
+    "description": "확장 프로그램 설명。"
+  },
+  "primaryLangLabel": {
+    "message": "주 언어:",
+    "description": "기본 언어 드롭다운 레이블。"
+  },
+  "secondaryLangLabel": {
+    "message": "보조 언어:",
+    "description": "보조 언어 드롭다운 레이블。"
+  },
+  "saveBtn": {
+    "message": "저장",
+    "description": "저장 버튼 텍스트。"
+  },
+  "syncToast": {
+    "message": "자막 동기화: $delay$",
+    "description": "자막 동기화 조정 토스트 메시지。",
+    "placeholders": {
+      "delay": {
+        "content": "$1"
+      }
+    }
+  },
+  "delayed": {
+    "message": "지연",
+    "description": "지연 상태 텍스트。"
+  },
+  "advanced": {
+    "message": "앞당김",
+    "description": "앞당겨진 상태 텍스트。"
+  },
+  "off": {
+    "message": "끄기",
+    "description": "자막 트랙을 비활성화하는 옵션。"
+  }
+}
