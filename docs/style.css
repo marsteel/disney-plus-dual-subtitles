@@ -1,0 +1,121 @@
+:root {
+  --bg-color: #1a1d29;
+  --panel-bg: #262938;
+  --accent-color: #0072d2;
+  --accent-hover: #0087fa;
+  --text-primary: #f9f9fa;
+  --text-secondary: #cacaca;
+  --font-main: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-color);
+  color: var(--text-primary);
+  font-family: var(--font-main);
+  line-height: 1.6;
+}
+
+header {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  background: radial-gradient(circle at center, #2a2d3e 0%, #1a1d29 100%);
+  padding: 20px;
+}
+
+h1 {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  background: linear-gradient(90deg, #fff, #0072d2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.hero-subtitle {
+  font-size: 1.5rem;
+  color: var(--text-secondary);
+  max-width: 800px;
+}
+
+.btn {
+  display: inline-block;
+  padding: 12px 30px;
+  background-color: var(--accent-color);
+  color: white;
+  text-decoration: none;
+  border-radius: 50px;
+  font-weight: bold;
+  margin-top: 2rem;
+  transition: transform 0.2s, background-color 0.2s;
+}
+
+.btn:hover {
+  background-color: var(--accent-hover);
+  transform: translateY(-2px);
+}
+
+.section {
+  max-width: 1000px;
+  margin: 100px auto;
+  padding: 0 20px;
+}
+
+h2 {
+  font-size: 2.5rem;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 30px;
+}
+
+.feature-card {
+  background-color: var(--panel-bg);
+  padding: 30px;
+  border-radius: 12px;
+  border: 1px solid #333;
+  transition: transform 0.3s;
+}
+
+.feature-card:hover {
+  transform: scale(1.02);
+  border-color: var(--accent-color);
+}
+
+.feature-card h3 {
+  color: var(--accent-color);
+  margin-top: 0;
+}
+
+.code-block {
+  background-color: #0d1117;
+  padding: 20px;
+  border-radius: 8px;
+  overflow-x: auto;
+  font-family: 'Courier New', Courier, monospace;
+  color: #c9d1d9;
+}
+
+footer {
+  text-align: center;
+  padding: 50px 20px;
+  border-top: 1px solid #333;
+  color: var(--text-secondary);
+}
+
+@media (max-width: 768px) {
+  h1 { font-size: 2.5rem; }
+  .section { margin: 50px auto; }
+}
