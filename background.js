@@ -3,11 +3,12 @@ chrome.runtime.onInstalled.addListener((details) => {
   if (details.reason === 'install') {
     console.log("Disney+ Dual Subtitles installed.");
     
-    // Set default state
+    // Set default state using browser UI language as secondary language
+    const uiLang = chrome.i18n.getUILanguage().split('-')[0]; // e.g., 'zh' from 'zh-CN'
     chrome.storage.sync.set({ 
       enabled: true,
       primaryLang: 'en',
-      secondaryLang: 'zh' // Chinese
+      secondaryLang: uiLang
     });
 
     // Open changelog for new installation
