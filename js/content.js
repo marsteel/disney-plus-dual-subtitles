@@ -26,6 +26,14 @@ let subtitleBaseUrls = {
   secondary: []
 };
 
+// Unique key for metadata caching
+function getVideoId() {
+    const match = location.href.match(/\/video\/([a-zA-Z0-9-]+)/);
+    if (match) return match[1];
+    // Fallback to the whole path or hash if it's a specific router structure
+    return location.pathname + location.hash;
+}
+
 let lastUrl = location.href;
 window.disneyDualIntervals = window.disneyDualIntervals || [];
 
@@ -50,6 +58,19 @@ function resetSubtitleState() {
     if (prim) prim.innerHTML = '';
     if (sec) sec.innerHTML = '';
   }
+
+  // Load from cache if available
+  const videoId = getVideoId();
+  chrome.storage.local.get(['subtitleCache'], (data) => {
+      const cache = data.subtitleCache || {};
+      if (cache[videoId]) {
+          console.log("Disney+ Dual Subtitles: Restoring subtitle map from cache for", videoId);
+          Object.assign(subtitleLangMap, cache[videoId].map);
+          chrome.storage.local.set({ detectedLanguages: Object.keys(subtitleLangMap) });
+          // If extension is enabled, we could trigger loading here, but usually 
+          // a video load will trigger a new master list interception anyway.
+      }
+  });
 }
 
 // Inject interceptor script into the main page
@@ -111,7 +132,27 @@ window.addEventListener('message', (event) => {
       // Save detected languages for the popup
       chrome.storage.local.set({ detectedLanguages: Object.keys(subtitleLangMap) });
 
-       if (extensionConfig.enabled) {
+      // Build/Update persistent cache
+      const videoId = getVideoId();
+      chrome.storage.local.get(['subtitleCache'], (data) => {
+          let cache = data.subtitleCache || {};
+          cache[videoId] = {
+              map: subtitleLangMap,
+              timestamp: Date.now()
+          };
+
+          // Limit to last 10 videos
+          const keys = Object.keys(cache);
+          if (keys.length > 10) {
+              const sortedKeys = keys.sort((a, b) => cache[a].timestamp - cache[b].timestamp);
+              delete cache[sortedKeys[0]]; // Remove oldest
+          }
+
+          chrome.storage.local.set({ subtitleCache: cache });
+          console.log("Disney+ Dual Subtitles: Metadata cached for video", videoId);
+      });
+
+      if (extensionConfig.enabled) {
           // Load Primary
           if (extensionConfig.primaryLang === 'none') {
               primarySubs = [];

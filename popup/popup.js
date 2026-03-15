@@ -100,35 +100,50 @@ document.addEventListener('DOMContentLoaded', () => {
     
     applyStylesToUI(syncData);
 
-    chrome.storage.local.get(['detectedLanguages'], (localData) => {
-      const detected = localData.detectedLanguages;
-      
-      if (detected && Array.isArray(detected) && detected.length > 0) {
-        const populateSelect = (selectEl, currentVal) => {
-          selectEl.innerHTML = '';
-          const offOpt = document.createElement('option');
-          offOpt.value = 'none';
-          offOpt.textContent = chrome.i18n.getMessage('off');
-          if (currentVal === 'none') offOpt.selected = true;
-          selectEl.appendChild(offOpt);
+    // Get active tab to extract video ID for cache retrieval
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        const activeTab = tabs[0];
+        const url = activeTab?.url || "";
+        const match = url.match(/\/video\/([a-zA-Z0-9-]+)/);
+        const videoId = match ? match[1] : (url ? new URL(url).pathname + new URL(url).hash : null);
 
-          detected.forEach(lang => {
-            const opt = document.createElement('option');
-            opt.value = lang;
-            opt.textContent = LANG_NAMES[lang] || lang; 
-            if (lang === currentVal) opt.selected = true;
-            selectEl.appendChild(opt);
-          });
-        };
+        chrome.storage.local.get(['subtitleCache', 'detectedLanguages'], (localData) => {
+            let detected = localData.detectedLanguages || [];
+            
+            // Try to supplement from cache if we have a videoId
+            if (videoId && localData.subtitleCache && localData.subtitleCache[videoId]) {
+                const cachedMap = localData.subtitleCache[videoId].map;
+                detected = Array.from(new Set([...detected, ...Object.keys(cachedMap)]));
+                console.log("Popup: Using cached metadata for video", videoId);
+            }
 
-        populateSelect(primaryLang, syncData.primaryLang);
-        populateSelect(secondaryLang, syncData.secondaryLang);
-      }
+            if (detected && Array.isArray(detected) && detected.length > 0) {
+                const populateSelect = (selectEl, currentVal) => {
+                    selectEl.innerHTML = '';
+                    const offOpt = document.createElement('option');
+                    offOpt.value = 'none';
+                    offOpt.textContent = chrome.i18n.getMessage('off');
+                    if (currentVal === 'none') offOpt.selected = true;
+                    selectEl.appendChild(offOpt);
 
-      if (syncData.enabled !== undefined) {
-        enableToggle.checked = syncData.enabled;
-        toggleSettingsVisibility(syncData.enabled);
-      }
+                    detected.forEach(lang => {
+                        const opt = document.createElement('option');
+                        opt.value = lang;
+                        opt.textContent = LANG_NAMES[lang] || lang; 
+                        if (lang === currentVal) opt.selected = true;
+                        selectEl.appendChild(opt);
+                    });
+                };
+
+                populateSelect(primaryLang, syncData.primaryLang);
+                populateSelect(secondaryLang, syncData.secondaryLang);
+            }
+
+            if (syncData.enabled !== undefined) {
+                enableToggle.checked = syncData.enabled;
+                toggleSettingsVisibility(syncData.enabled);
+            }
+        });
     });
   });
 
