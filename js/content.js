@@ -569,6 +569,108 @@ function timeStrToSeconds(timeStr) {
   return seconds;
 }
 
+function findCueWithPersistence(subs, time) {
+    if (!subs || subs.length === 0) return null;
+    
+    // 1. Strict match
+    const cue = subs.find(c => time >= c.start && time <= c.end);
+    if (cue) return cue;
+    
+    // 2. Persistence / Gap Bridging (150ms)
+    // Look for a cue that just ended but we are still within a small grace period.
+    // This prevents "flicker" when primary/secondary timestamps are slightly off.
+    const gracePeriod = 0.300; // 300ms
+    const recentCue = subs.find(c => time > c.end && time <= (c.end + gracePeriod));
+    
+    // Only use persistence if the NEXT cue hasn't started yet
+    if (recentCue) {
+        const nextCue = subs.find(c => c.start > recentCue.end);
+        if (nextCue && time >= nextCue.start) {
+            return null; // Next one started, drop persistence
+        }
+        return recentCue;
+    }
+    
+    return null;
+}
+
+function getActiveVideo() {
+    const vids = Array.from(document.querySelectorAll('video'));
+    if (vids.length === 0) return null;
+    
+    let bestVid = vids[0];
+    let maxScore = -1;
+
+    vids.forEach((vid, idx) => {
+        const rect = vid.getBoundingClientRect();
+        const area = rect.width * rect.height;
+        let score = area;
+        if (rect.width < 300) score -= 1000000;
+        if (!vid.paused) score += 500000;
+        if (score > maxScore) {
+            maxScore = score;
+            bestVid = vid;
+        }
+    });
+    return bestVid;
+}
+
+function guessUITime() {
+    // Priority 1: Shadow DOM Slider (Modern Disney+ UI)
+    try {
+        const playerUI = document.querySelector("disney-web-player-ui");
+        const progressBar = playerUI ? playerUI.querySelector("progress-bar") : null;
+        if (progressBar && progressBar.shadowRoot) {
+            const ariaEl = progressBar.shadowRoot.querySelector("[aria-valuenow]");
+            if (ariaEl) {
+                const val = parseFloat(ariaEl.ariaValueNow || ariaEl.getAttribute('aria-valuenow'));
+                if (!isNaN(val)) return val;
+            }
+        }
+    } catch (e) { /* silent fail */ }
+
+    // Priority 2: High-precision slider attribute (aria-valuenow on Disney+ slider)
+    const slider = document.querySelector('.slider-container');
+    if (slider && slider.getAttribute('aria-valuenow')) {
+        const sliderValue = parseFloat(slider.getAttribute('aria-valuenow'));
+        if (!isNaN(sliderValue)) return sliderValue;
+    }
+
+    // Reference logic from user snippet: document.querySelector("div[class='slider-container']").ariaValueNow
+    const sliderDiv = document.querySelector("div[class='slider-container']");
+    if (sliderDiv && sliderDiv.ariaValueNow) {
+        const val = parseFloat(sliderDiv.ariaValueNow);
+        if (!isNaN(val)) return val;
+    }
+
+    // Priority 3: DOM scraping for text (fallback when slider is missing/unpopulated)
+    const timeElements = document.querySelectorAll('[class*="time" i], [data-testid*="time" i], span, div');
+    for (let el of timeElements) {
+        if (el.children.length > 0) continue; 
+        const text = el.innerText ? el.innerText.trim() : "";
+        if (text && /^(\d{1,2}:)?\d{1,2}:\d{2}$/.test(text)) {
+            return timeStrToSeconds(text);
+        }
+    }
+    return null;
+}
+
+function findNativeSubtitleText() {
+    // Disney+ uses containers like .dss-subtitle-container or .shaka-text-container
+    // We look for any text content in these areas (even though we hide them)
+    const containers = document.querySelectorAll('.dss-subtitle-container, .shaka-text-container, [class*="subtitle-container" i]');
+    let fullText = "";
+    for (const container of containers) {
+        // We want the actual text being rendered
+        const text = container.innerText ? container.innerText.trim() : "";
+        if (text) {
+            fullText += (fullText ? " " : "") + text;
+        }
+    }
+    // Clean up for matching (normalize spaces)
+    return fullText.replace(/\s+/g, " ").trim();
+}
+
 function setupSync() {
   if (videoElement) return; // Already setup
 
@@ -743,108 +845,6 @@ function setupSync() {
                   console.log(`Disney+ Dual Subtitles: Key pressed ${e.key}, manual delay adjusted to ${window.disneyDualSubDelay}s`);
               }
           }, true);
-      }
-
-      function findCueWithPersistence(subs, time) {
-          if (!subs || subs.length === 0) return null;
-          
-          // 1. Strict match
-          const cue = subs.find(c => time >= c.start && time <= c.end);
-          if (cue) return cue;
-          
-          // 2. Persistence / Gap Bridging (150ms)
-          // Look for a cue that just ended but we are still within a small grace period.
-          // This prevents "flicker" when primary/secondary timestamps are slightly off.
-          const gracePeriod = 0.300; // 300ms
-          const recentCue = subs.find(c => time > c.end && time <= (c.end + gracePeriod));
-          
-          // Only use persistence if the NEXT cue hasn't started yet
-          if (recentCue) {
-              const nextCue = subs.find(c => c.start > recentCue.end);
-              if (nextCue && time >= nextCue.start) {
-                  return null; // Next one started, drop persistence
-              }
-              return recentCue;
-          }
-          
-          return null;
-      }
-
-      function getActiveVideo() {
-          const vids = Array.from(document.querySelectorAll('video'));
-          if (vids.length === 0) return null;
-          
-          let bestVid = vids[0];
-          let maxScore = -1;
-
-          vids.forEach((vid, idx) => {
-              const rect = vid.getBoundingClientRect();
-              const area = rect.width * rect.height;
-              let score = area;
-              if (rect.width < 300) score -= 1000000;
-              if (!vid.paused) score += 500000;
-              if (score > maxScore) {
-                  maxScore = score;
-                  bestVid = vid;
-              }
-          });
-          return bestVid;
-      }
-
-      function guessUITime() {
-          // Priority 1: Shadow DOM Slider (Modern Disney+ UI)
-          try {
-              const playerUI = document.querySelector("disney-web-player-ui");
-              const progressBar = playerUI ? playerUI.querySelector("progress-bar") : null;
-              if (progressBar && progressBar.shadowRoot) {
-                  const ariaEl = progressBar.shadowRoot.querySelector("[aria-valuenow]");
-                  if (ariaEl) {
-                      const val = parseFloat(ariaEl.ariaValueNow || ariaEl.getAttribute('aria-valuenow'));
-                      if (!isNaN(val)) return val;
-                  }
-              }
-          } catch (e) { /* silent fail */ }
-
-          // Priority 2: High-precision slider attribute (aria-valuenow on Disney+ slider)
-          const slider = document.querySelector('.slider-container');
-          if (slider && slider.getAttribute('aria-valuenow')) {
-              const sliderValue = parseFloat(slider.getAttribute('aria-valuenow'));
-              if (!isNaN(sliderValue)) return sliderValue;
-          }
-
-          // Reference logic from user snippet: document.querySelector("div[class='slider-container']").ariaValueNow
-          const sliderDiv = document.querySelector("div[class='slider-container']");
-          if (sliderDiv && sliderDiv.ariaValueNow) {
-              const val = parseFloat(sliderDiv.ariaValueNow);
-              if (!isNaN(val)) return val;
-          }
-
-          // Priority 3: DOM scraping for text (fallback when slider is missing/unpopulated)
-          const timeElements = document.querySelectorAll('[class*="time" i], [data-testid*="time" i], span, div');
-          for (let el of timeElements) {
-              if (el.children.length > 0) continue; 
-              const text = el.innerText ? el.innerText.trim() : "";
-              if (text && /^(\d{1,2}:)?\d{1,2}:\d{2}$/.test(text)) {
-                  return timeStrToSeconds(text);
-              }
-          }
-          return null;
-      }
-
-      function findNativeSubtitleText() {
-          // Disney+ uses containers like .dss-subtitle-container or .shaka-text-container
-          // We look for any text content in these areas (even though we hide them)
-          const containers = document.querySelectorAll('.dss-subtitle-container, .shaka-text-container, [class*="subtitle-container" i]');
-          let fullText = "";
-          for (const container of containers) {
-              // We want the actual text being rendered
-              const text = container.innerText ? container.innerText.trim() : "";
-              if (text) {
-                  fullText += (fullText ? " " : "") + text;
-              }
-          }
-          // Clean up for matching (normalize spaces)
-          return fullText.replace(/\s+/g, " ").trim();
       }
 
       if (typeof window.disneyStableOffset === 'undefined') {
