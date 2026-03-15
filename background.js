@@ -2,10 +2,10 @@
 chrome.runtime.onInstalled.addListener((details) => {
   if (details.reason === 'install') {
     console.log("Disney+ Dual Subtitles installed.");
-    
+
     // Set default state using browser UI language as secondary language
     const uiLang = chrome.i18n.getUILanguage().split('-')[0]; // e.g., 'zh' from 'zh-CN'
-    chrome.storage.sync.set({ 
+    chrome.storage.sync.set({
       enabled: true,
       primaryLang: 'en',
       secondaryLang: uiLang
@@ -14,10 +14,14 @@ chrome.runtime.onInstalled.addListener((details) => {
     // Open changelog for new installation
     chrome.tabs.create({ url: "https://disney-plus-dual-subtitles.magang.net/changelog.html" });
   } else if (details.reason === 'update') {
-    console.log("Disney+ Dual Subtitles updated.");
-    
-    // Open changelog after version update
-    chrome.tabs.create({ url: "https://disney-plus-dual-subtitles.magang.net/changelog.html" });
+    const currentVersion = chrome.runtime.getManifest().version;
+    if (details.previousVersion !== currentVersion) {
+      console.log(`Disney+ Dual Subtitles updated from ${details.previousVersion} to ${currentVersion}.`);
+      // Open changelog after genuine version update
+      chrome.tabs.create({ url: "https://disney-plus-dual-subtitles.magang.net/changelog.html" });
+    } else {
+      console.log("Disney+ Dual Subtitles reloaded (version unchanged).");
+    }
   }
 });
 
