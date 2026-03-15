@@ -14,7 +14,7 @@ chrome.runtime.onInstalled.addListener((details) => {
     });
 
     // Open usage guidance for new installation
-    chrome.tabs.create({ url: "https://disney-plus-dual-subtitles.magang.net/guidance.html" });
+    chrome.tabs.create({ url: "https://disney-plus-dual-subtitles.magang.net/getting-started.html" });
   } else if (details.reason === 'update') {
     const previousVersion = details.previousVersion;
 
