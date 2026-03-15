@@ -1,0 +1,41 @@
+name: Create Web Extension Release
+
+on:
+  push:
+    tags:
+      - 'v*' # Trigger when a tag starting with 'v' is pushed (e.g., v1.2.0)
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Required to create a release and upload assets
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Validate if manifest.json version matches the Git tag to prevent shipping wrong versions
+      - name: Validate version consistency
+        run: |
+          MANIFEST_VERSION=$(jq -r .version manifest.json)
+          TAG_VERSION=${GITHUB_REF#refs/tags/v}
+          if [ "$MANIFEST_VERSION" != "$TAG_VERSION" ]; then
+            echo "Error: manifest.json version ($MANIFEST_VERSION) does not match Git tag (v$TAG_VERSION)"
+            exit 1
+          fi
+
+      # Package the extension, excluding development files, hidden folders, and documentation
+      - name: Zip extension source
+        run: |
+          zip -r disney-plus-dual-subtitles-${{ github.ref_name }}.zip . \
+          -x "*.git*" ".github*" "node_modules*" "*.md" "package-lock.json" ".gitignore" "tests/*"
+
+      # Create a formal GitHub Release and attach the zipped extension
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: disney-plus-dual-subtitles-${{ github.ref_name }}.zip
+          generate_release_notes: true # Automatically generate release notes from commit history
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
