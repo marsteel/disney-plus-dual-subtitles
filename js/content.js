@@ -16,6 +16,12 @@ let extensionConfig = {
 };
 
 let subtitleLangMap = {}; // Maps language -> url
+let m3u8ContentCache = {}; // Cache for .m3u8 text contents
+// Helper for rate limiting
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 let primarySubs = []; // Array of parsed chunks: {start, end, text}
 let secondarySubs = [];
 let videoElement = null;
@@ -325,24 +331,26 @@ function injectHideNativeCSS() {
   document.head.appendChild(style);
 }
 
-async function loadSubtitleTarget(url, target = 'secondary') {
-  console.log(`Disney+ Dual Subtitles: Loading ${target} subtitles for language [${target === 'primary' ? extensionConfig.primaryLang : extensionConfig.secondaryLang}] from:`, url);
+async function loadSubtitleTarget(url, target = 'secondary', skipClear = false) {
+  console.log(`Disney+ Dual Subtitles: Loading ${target} subtitles (skipClear=${skipClear}) for language [${target === 'primary' ? extensionConfig.primaryLang : extensionConfig.secondaryLang}] from:`, url);
   
-  // Clear processedSegments for this target so it can be re-loaded if switched back
-  const currentBases = subtitleBaseUrls[target] || [];
-  for (const segUrl of processedSegments) {
-      if (currentBases.some(base => segUrl.startsWith(base))) {
-          processedSegments.delete(segUrl);
+  if (!skipClear) {
+      // Clear processedSegments for this target so it can be re-loaded if switched back
+      const currentBases = subtitleBaseUrls[target] || [];
+      for (const segUrl of processedSegments) {
+          if (currentBases.some(base => segUrl.startsWith(base))) {
+              processedSegments.delete(segUrl);
+          }
       }
-  }
 
-  // Clear existing state for this target to prevent mixing languages
-  if (target === 'primary') {
-      primarySubs = [];
-      subtitleBaseUrls.primary = [];
-  } else {
-      secondarySubs = [];
-      subtitleBaseUrls.secondary = [];
+      // Clear existing state for this target to prevent mixing languages
+      if (target === 'primary') {
+          primarySubs = [];
+          subtitleBaseUrls.primary = [];
+      } else {
+          secondarySubs = [];
+          subtitleBaseUrls.secondary = [];
+      }
   }
 
   // Store the base URL to identify segment requests later
@@ -354,9 +362,15 @@ async function loadSubtitleTarget(url, target = 'secondary') {
   } catch(e) {}
 
   try {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error("Network response was not ok");
-    const text = await res.text();
+    let text;
+    if (m3u8ContentCache[url]) {
+        text = m3u8ContentCache[url];
+    } else {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error("Network response was not ok");
+        text = await res.text();
+        if (url.includes('.m3u8')) m3u8ContentCache[url] = text;
+    }
     
     if (url.includes('.m3u8')) {
        // Pass the intended language to parseM3u8 for cancellation check
@@ -412,49 +426,67 @@ async function parseM3u8(baseUrl, m3u8Text, target = 'secondary', intendedLang =
   let allCues = [];
   let segmentsProcessed = 0;
   
-  // We can fetch somewhat concurrently, but let's stick to small batches or sequential 
-  for (const segment of segmentList) {
-      // Cancellation check: If user switched languages, stop this loop
+  // Priority sorting: segments AFTER current time first, then segments before.
+  const video = getActiveVideo();
+  const currentTime = video ? (video.currentTime - (window.disneyStableOffset || 0) - (window.disneyDualSubDelay || 0)) : 0;
+  
+  // Tag segments with distance for better sorting if we wanted, but "after vs before" is simpler for now
+  const sortedSegments = [...segmentList].sort((a, b) => {
+      const aAfter = a.offset >= currentTime;
+      const bAfter = b.offset >= currentTime;
+      if (aAfter && !bAfter) return -1;
+      if (!aAfter && bAfter) return 1;
+      return a.offset - b.offset; // Maintain chronological within groups
+  });
+
+  // Unique ID for this download task to allow interruptions on seek
+  const taskId = Math.random().toString(36).substring(7);
+  if (target === 'primary') window.lastPrimaryTaskId = taskId;
+  else window.lastSecondaryTaskId = taskId;
+
+  for (const segment of sortedSegments) {
+      // Cancellation check: Language switch
       const currentLabel = target === 'primary' ? extensionConfig.primaryLang : extensionConfig.secondaryLang;
       if (intendedLang && currentLabel !== intendedLang) {
-          console.log(`Disney+ Dual Subtitles: Cancellation triggered for ${target} [${intendedLang} -> ${currentLabel}]. Stopping download.`);
+          console.log(`Disney+ Dual Subtitles: Cancellation triggered for ${target} [${intendedLang} -> ${currentLabel}]. Stopping.`);
+          return;
+      }
+
+      // Cancellation check: Reprioritization (Seek)
+      const lastId = target === 'primary' ? window.lastPrimaryTaskId : window.lastSecondaryTaskId;
+      if (lastId !== taskId) {
+          console.log(`Disney+ Dual Subtitles: Reprioritization triggered for ${target}. Stopping old task.`);
           return;
       }
 
       if (processedSegments.has(segment.url)) continue;
-      processedSegments.add(segment.url);
+      
+      // Delay for rate limiting
+      await sleep(50);
 
       try {
-         const segRes = await fetch(segment.url);
-         const segText = await segRes.text();
-         
-         // For Disney+, we've observed that VTT segments are ALREADY movie-absolute.
-         // (e.g. seg_00001.vtt starts at 00:03:26, not 00:00:00).
-         // Therefore, we pass 0 as the offset so we don't double-add the duration.
-         const cues = parseVTT(segText, 0, segment.url);
-         allCues = allCues.concat(cues);
-         
-         // Periodically update active arrays so subs appear mid-download
-         segmentsProcessed++;
-         if (segmentsProcessed === 1 || segmentsProcessed % 10 === 0) {
-             const targetArray = target === 'primary' ? primarySubs : secondarySubs;
-             const existingCount = targetArray.length;
-             
-             // Merge uniquely
-             for (const c of allCues) {
-                 if (!targetArray.some(e => Math.abs(e.start - c.start) < 0.1)) {
-                     targetArray.push(c);
-                 }
-             }
-             targetArray.sort((a, b) => a.start - b.start);
-             
-             if (segmentsProcessed === 1) {
-                 const firstCue = cues[0];
-                 console.log(`Disney+ Dual Subtitles: First Cue for ${target}: [${firstCue?.text}], Start: ${firstCue?.start}`);
-             }
-         }
+          // Double check processed map after sleep to avoid race
+          if (processedSegments.has(segment.url)) continue;
+          processedSegments.add(segment.url);
+
+          const segRes = await fetch(segment.url);
+          const segText = await segRes.text();
+          const cues = parseVTT(segText, 0, segment.url);
+          allCues = allCues.concat(cues);
+          
+          segmentsProcessed++;
+          if (segmentsProcessed === 1 || segmentsProcessed % 5 === 0) {
+              const targetArray = target === 'primary' ? primarySubs : secondarySubs;
+              
+              for (const c of allCues) {
+                  if (!targetArray.some(e => Math.abs(e.start - c.start) < 0.1)) {
+                      targetArray.push(c);
+                  }
+              }
+              targetArray.sort((a, b) => a.start - b.start);
+          }
       } catch (e) {
-         console.error(`Failed to fetch VTT segment for ${target}:`, e);
+          console.error(`Failed to fetch VTT segment for ${target}:`, e);
       }
   }
   
@@ -552,6 +584,21 @@ function setupSync() {
       window.disneyDualIntervals = window.disneyDualIntervals.filter(id => id !== findVideoTimer);
       
       videoElement = vid;
+
+      // Handle re-prioritization on seek
+      videoElement.addEventListener('seeked', () => {
+          console.log("Disney+ Dual Subtitles: Seek detected. Re-prioritizing downloads...");
+          if (extensionConfig.enabled) {
+              Object.keys(subtitleLangMap).forEach(lang => {
+                  if (lang === extensionConfig.primaryLang || lang.startsWith(extensionConfig.primaryLang)) {
+                      loadSubtitleTarget(subtitleLangMap[lang], 'primary', true);
+                  }
+                  if (lang === extensionConfig.secondaryLang || lang.startsWith(extensionConfig.secondaryLang)) {
+                      loadSubtitleTarget(subtitleLangMap[lang], 'secondary', true);
+                  }
+              });
+          }
+      });
       
       // Create subtitle container
       if (!subtitleOverlay) {
