@@ -10,7 +10,8 @@
     "scripting"
   ],
   "host_permissions": [
-    "*://*.disneyplus.com/*"
+    "*://*.disneyplus.com/*",
+    "*://*.dssott.com/*"
   ],
   "icons": {
     "16": "icons/icon16.png",

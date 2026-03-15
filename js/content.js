@@ -419,8 +419,8 @@ async function parseM3u8(baseUrl, m3u8Text, target = 'secondary', intendedLang =
   
   if (!window.disneySegmentOffsets) window.disneySegmentOffsets = {};
   for (const seg of segmentList) {
-      // In Disney+, VTTs are absolute, so the offset from M3U8 duration should be ignored.
-      window.disneySegmentOffsets[seg.url] = 0;
+      // Correcting the offset map to use the real segment offset from M3U8
+      window.disneySegmentOffsets[seg.url] = seg.offset;
   }
 
   let allCues = [];
@@ -471,23 +471,37 @@ async function parseM3u8(baseUrl, m3u8Text, target = 'secondary', intendedLang =
 
           const segRes = await fetch(segment.url);
           const segText = await segRes.text();
-          const cues = parseVTT(segText, 0, segment.url);
+          
+          const cues = parseVTT(segText, segment.offset, segment.url);
           allCues = allCues.concat(cues);
           
           segmentsProcessed++;
+          
+          // Partial flush to show subtitles as they download
           if (segmentsProcessed === 1 || segmentsProcessed % 5 === 0) {
               const targetArray = target === 'primary' ? primarySubs : secondarySubs;
-              
               for (const c of allCues) {
                   if (!targetArray.some(e => Math.abs(e.start - c.start) < 0.1)) {
                       targetArray.push(c);
                   }
               }
               targetArray.sort((a, b) => a.start - b.start);
+              allCues = []; // Clear buffer once pushed
           }
       } catch (e) {
           console.error(`Failed to fetch VTT segment for ${target}:`, e);
       }
+  }
+
+  // Final flush for remaining segments
+  if (allCues.length > 0) {
+      const targetArray = target === 'primary' ? primarySubs : secondarySubs;
+      for (const c of allCues) {
+          if (!targetArray.some(e => Math.abs(e.start - c.start) < 0.1)) {
+              targetArray.push(c);
+          }
+      }
+      targetArray.sort((a, b) => a.start - b.start);
   }
   
   console.log(`Disney+ Dual Subtitles: Finished loading all ${target} segments.`);
