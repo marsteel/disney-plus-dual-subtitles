@@ -17,6 +17,16 @@ let extensionConfig = {
 
 let subtitleLangMap = {}; // Maps language -> url
 let m3u8ContentCache = {}; // Cache for .m3u8 text contents
+// Helper to check if extension context is still valid
+function isContextValid() {
+    if (typeof chrome === 'undefined' || !chrome.runtime || !chrome.runtime.id) {
+        clearAllIntervals();
+        console.warn("Disney+ Dual Subtitles: Extension context invalidated. Cleaning up...");
+        return false;
+    }
+    return true;
+}
+
 // Helper for rate limiting
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -67,20 +77,24 @@ function resetSubtitleState() {
 
   // Load from cache if available
   const videoId = getVideoId();
-  chrome.storage.local.get(['subtitleCache'], (data) => {
-      const cache = data.subtitleCache || {};
-      if (cache[videoId]) {
-          console.log("Disney+ Dual Subtitles: Restoring subtitle map from cache for", videoId);
-          Object.assign(subtitleLangMap, cache[videoId].map);
-          chrome.storage.local.set({ detectedLanguages: Object.keys(subtitleLangMap) });
-          // If extension is enabled, we could trigger loading here, but usually 
-          // a video load will trigger a new master list interception anyway.
-      }
-  });
+  if (isContextValid()) {
+      chrome.storage.local.get(['subtitleCache'], (data) => {
+          if (chrome.runtime.lastError) return;
+          const cache = data.subtitleCache || {};
+          if (cache[videoId]) {
+              console.log("Disney+ Dual Subtitles: Restoring subtitle map from cache for", videoId);
+              Object.assign(subtitleLangMap, cache[videoId].map);
+              if (isContextValid()) {
+                  chrome.storage.local.set({ detectedLanguages: Object.keys(subtitleLangMap) });
+              }
+          }
+      });
+  }
 }
 
 // Inject interceptor script into the main page
 function injectScript() {
+  if (!isContextValid()) return;
   const script = document.createElement('script');
   script.src = chrome.runtime.getURL('js/inject.js');
   script.onload = function() {
@@ -90,14 +104,17 @@ function injectScript() {
 }
 
 // Initialize config
-chrome.storage.sync.get(['enabled', 'primaryLang', 'secondaryLang',
-                         'primaryColor', 'primaryBg', 'primarySize', 'primaryBold',
-                         'secondaryColor', 'secondaryBg', 'secondarySize', 'secondaryBold'], (data) => {
-  if (data) Object.assign(extensionConfig, data);
-  if (extensionConfig.enabled) {
-    initDualSubtitles();
-  }
-});
+if (isContextValid()) {
+    chrome.storage.sync.get(['enabled', 'primaryLang', 'secondaryLang',
+                             'primaryColor', 'primaryBg', 'primarySize', 'primaryBold',
+                             'secondaryColor', 'secondaryBg', 'secondarySize', 'secondaryBold'], (data) => {
+      if (chrome.runtime.lastError) return;
+      if (data) Object.assign(extensionConfig, data);
+      if (extensionConfig.enabled) {
+        initDualSubtitles();
+      }
+    });
+}
 
 function applyCurrentStyles() {
     if (!subtitleOverlay) return;
@@ -130,32 +147,33 @@ window.addEventListener('message', (event) => {
   console.log("Disney+ Dual Subtitles: Intercepted raw track", lang, typeof url === 'string' ? url.substring(0, 100) + '...' : '');
 
   // If this is a master mapping
-  if (subtitlesMap) {
-      console.log("Disney+ Dual Subtitles: Got master subtitle map!", Object.keys(subtitlesMap));
-      resetSubtitleState();
-      Object.assign(subtitleLangMap, subtitlesMap);
+  if (subtitlesMap || event.data.type === 'MASTER_SUBTITLE_MAP') {
+      const map = subtitlesMap || event.data.map;
+      console.log("Disney+ Dual Subtitles: Master subtitle map intercepted!", Object.keys(map));
+      resetSubtitleState(); // Reset state for new video
+      Object.assign(subtitleLangMap, map);
       
-      // Save detected languages for the popup
-      chrome.storage.local.set({ detectedLanguages: Object.keys(subtitleLangMap) });
+      if (!isContextValid()) return;
 
-      // Build/Update persistent cache
+      chrome.storage.local.set({ detectedLanguages: Object.keys(subtitleLangMap) });
+      
       const videoId = getVideoId();
       chrome.storage.local.get(['subtitleCache'], (data) => {
-          let cache = data.subtitleCache || {};
-          cache[videoId] = {
-              map: subtitleLangMap,
-              timestamp: Date.now()
-          };
-
+          if (chrome.runtime.lastError) return;
+          const cache = data.subtitleCache || {};
+          
           // Limit to last 10 videos
-          const keys = Object.keys(cache);
-          if (keys.length > 10) {
-              const sortedKeys = keys.sort((a, b) => cache[a].timestamp - cache[b].timestamp);
-              delete cache[sortedKeys[0]]; // Remove oldest
+          const keys = Object.keys(cache).sort((a, b) => (cache[a].timestamp || 0) - (cache[b].timestamp || 0));
+          if (keys.length >= 10 && !cache[videoId]) {
+              delete cache[keys[0]];
           }
 
-          chrome.storage.local.set({ subtitleCache: cache });
-          console.log("Disney+ Dual Subtitles: Metadata cached for video", videoId);
+          cache[videoId] = { map: subtitleLangMap, timestamp: Date.now() };
+
+          if (isContextValid()) {
+              chrome.storage.local.set({ subtitleCache: cache });
+              console.log("Disney+ Dual Subtitles: Metadata cached for video", videoId);
+          }
       });
 
       if (extensionConfig.enabled) {
@@ -257,59 +275,57 @@ async function fetchAndAppendSegment(url, target = 'secondary') {
 }
 
 // Listen for config changes
-chrome.storage.onChanged.addListener((changes, namespace) => {
-  if (namespace === 'sync') {
-    if (changes.enabled) extensionConfig.enabled = changes.enabled.newValue;
-    if (changes.primaryLang) {
-       extensionConfig.primaryLang = changes.primaryLang.newValue;
-       if (extensionConfig.primaryLang === 'none') {
-          primarySubs = [];
-       } else {
-          const targetLang = Object.keys(subtitleLangMap).find(k => k.startsWith(extensionConfig.primaryLang));
-          if (targetLang) {
-             loadSubtitleTarget(subtitleLangMap[targetLang], 'primary');
-          } else {
-             primarySubs = [];
-          }
-       }
-    }
-    if (changes.secondaryLang) {
-      extensionConfig.secondaryLang = changes.secondaryLang.newValue;
-      if (extensionConfig.secondaryLang === 'none') {
-         secondarySubs = [];
-      } else {
-         const targetLang = Object.keys(subtitleLangMap).find(k => k.startsWith(extensionConfig.secondaryLang));
-         if (targetLang) {
-            loadSubtitleTarget(subtitleLangMap[targetLang], 'secondary');
-         } else {
-            secondarySubs = [];
-         }
+if (isContextValid()) {
+    chrome.storage.onChanged.addListener((changes, namespace) => {
+      if (namespace === 'sync') {
+        // Small delay to ensure state is settled
+        setTimeout(() => {
+          if (!isContextValid()) return;
+          chrome.storage.sync.get(['enabled', 'primaryLang', 'secondaryLang',
+                                   'primaryColor', 'primaryBg', 'primarySize', 'primaryBold',
+                                   'secondaryColor', 'secondaryBg', 'secondarySize', 'secondaryBold'], (data) => {
+              if (chrome.runtime.lastError) return;
+              const wasEnabled = extensionConfig.enabled;
+              Object.assign(extensionConfig, data);
+              
+              if (extensionConfig.enabled && !wasEnabled) {
+                  initDualSubtitles();
+              } else if (!extensionConfig.enabled && wasEnabled) {
+                  cleanupSubtitles();
+              } else if (extensionConfig.enabled) {
+                  // Config changed while enabled, re-apply styles
+                  applyCurrentStyles();
+                  // If languages changed, we might need to re-load
+                  if (changes.primaryLang) {
+                      if (extensionConfig.primaryLang === 'none') {
+                          primarySubs = [];
+                      } else {
+                          const targetLang = Object.keys(subtitleLangMap).find(k => k === extensionConfig.primaryLang || k.startsWith(extensionConfig.primaryLang));
+                          if (targetLang) {
+                             loadSubtitleTarget(subtitleLangMap[targetLang], 'primary');
+                          } else {
+                             primarySubs = [];
+                          }
+                      }
+                  }
+                  if (changes.secondaryLang) {
+                      if (extensionConfig.secondaryLang === 'none') {
+                         secondarySubs = [];
+                      } else {
+                         const targetLang = Object.keys(subtitleLangMap).find(k => k === extensionConfig.secondaryLang || k.startsWith(extensionConfig.secondaryLang));
+                         if (targetLang) {
+                            loadSubtitleTarget(subtitleLangMap[targetLang], 'secondary');
+                         } else {
+                            secondarySubs = [];
+                         }
+                      }
+                  }
+              }
+          });
+        }, 50);
       }
-    }
-
-    // Handle styling changes
-    const styleKeys = [
-      'primaryColor', 'primaryBg', 'primarySize', 'primaryBold',
-      'secondaryColor', 'secondaryBg', 'secondarySize', 'secondaryBold'
-    ];
-    let styleChanged = false;
-    styleKeys.forEach(key => {
-        if (changes[key]) {
-            extensionConfig[key] = changes[key].newValue;
-            styleChanged = true;
-        }
     });
-    if (styleChanged) {
-        applyCurrentStyles();
-    }
-    
-    if (extensionConfig.enabled) {
-      initDualSubtitles();
-    } else {
-      cleanupSubtitles();
-    }
-  }
-});
+}
 
 function initDualSubtitles() {
   console.log("Initializing dual subtitles for Disney+...");
@@ -831,6 +847,7 @@ function setupSync() {
                       document.body.appendChild(toast);
                   }
                   
+                  if (!isContextValid()) return;
                   const labelDelayed = chrome.i18n.getMessage('delayed');
                   const labelAdvanced = chrome.i18n.getMessage('advanced');
                   const delayLabel = window.disneyDualSubDelay > 0 ? `+${window.disneyDualSubDelay.toFixed(1)}s (${labelDelayed})` : 
