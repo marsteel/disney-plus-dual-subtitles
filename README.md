@@ -45,3 +45,11 @@ To solve the "Jumping Subtitles" problem common in other extensions:
 3. Enable **Developer Mode**.
 4. Click **Load unpacked** and select the extension folder.
 5. Open Disney+, choose your languages in the popup, and click **Save**. Changes will apply instantly!
+
+## ❤️ Acknowledgements
+
+This project was inspired by and built upon the excellent work of the following projects and contributors:
+
+- [Movie-Subtitles](https://github.com/gignupg/Movie-Subtitles) — The original foundational research for Disney+ subtitle interception.
+- [dosentmatter](https://github.com/dosentmatter) — For their significant contributions in [PR #28](https://github.com/gignupg/Movie-Subtitles/pull/28).
+- [someone-aka-sum1](https://github.com/someone-aka-sum1) — For their enhancements in [PR #29](https://github.com/gignupg/Movie-Subtitles/pull/29).
