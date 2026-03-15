@@ -24,16 +24,26 @@
   },
   "content_scripts": [
     {
-      "matches": ["*://*.disneyplus.com/*"],
-      "css": ["css/content.css"],
-      "js": ["js/content.js"],
+      "matches": [
+        "*://*.disneyplus.com/*"
+      ],
+      "css": [
+        "css/content.css"
+      ],
+      "js": [
+        "js/content.js"
+      ],
       "run_at": "document_end"
     }
   ],
   "web_accessible_resources": [
     {
-      "resources": ["js/inject.js"],
-      "matches": ["*://*.disneyplus.com/*"]
+      "resources": [
+        "js/inject.js"
+      ],
+      "matches": [
+        "*://*.disneyplus.com/*"
+      ]
     }
   ],
   "action": {
