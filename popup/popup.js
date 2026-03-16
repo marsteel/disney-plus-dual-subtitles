@@ -126,12 +126,56 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (currentVal === 'none') offOpt.selected = true;
                     selectEl.appendChild(offOpt);
 
-                    detected.forEach(lang => {
+                    // Create a map to track what labels we've added to avoid confusion
+                    const seenLabels = new Set();
+                    
+                    detected.forEach(key => {
+                        const langObj = (localData.subtitleCache && videoId && localData.subtitleCache[videoId]?.map) 
+                                        ? localData.subtitleCache[videoId].map[key] 
+                                        : null;
+                        
                         const opt = document.createElement('option');
-                        opt.value = lang;
-                        opt.textContent = LANG_NAMES[lang] || lang; 
-                        if (lang === currentVal) opt.selected = true;
-                        selectEl.appendChild(opt);
+                        opt.value = key;
+                        
+                        let label = '';
+                        let baseCode = key;
+                        let typeSuffix = '';
+
+                        if (key.endsWith('-cc')) {
+                            baseCode = key.replace('-cc', '');
+                            typeSuffix = ' [CC]';
+                        } else if (key.endsWith('-forced')) {
+                            baseCode = key.replace('-forced', '');
+                            typeSuffix = ' [Forced]';
+                        } else if (key.endsWith('-normal')) {
+                            baseCode = key.replace('-normal', '');
+                        }
+                        // Handle legacy/fallback keys without suffix (e.g. "zh-hans")
+                        else {
+                            baseCode = key;
+                        }
+
+                        if (langObj && langObj.name) {
+                            label = langObj.name;
+                        } else {
+                            label = LANG_NAMES[baseCode.toLowerCase()] || baseCode;
+                        }
+                        
+                        // Append type for clarity if not already in the label from Disney+
+                        if (typeSuffix && !label.includes('[CC]') && !label.includes('CC')) {
+                            label += typeSuffix;
+                        }
+
+                        opt.textContent = label;
+                        if (key === currentVal) opt.selected = true;
+                        
+                        // Small cleanup: if we have "zh-hans" and "zh-hans-normal" as distinct keys, 
+                        // they are functionally the same. Only add if the full key-label combo is unique.
+                        const dedupeKey = `${label}-${key.includes('-normal') ? baseCode : key}`;
+                        if (!seenLabels.has(dedupeKey)) {
+                            selectEl.appendChild(opt);
+                            seenLabels.add(dedupeKey);
+                        }
                     });
                 };
 
