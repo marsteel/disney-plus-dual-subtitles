@@ -98,8 +98,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // Load current settings and detected languages
   chrome.storage.sync.get(['enabled', 'primaryLang', 'secondaryLang', 
                            'primaryColor', 'primaryBg', 'primarySize', 'primaryBold',
-                           'secondaryColor', 'secondaryBg', 'secondarySize', 'secondaryBold'], (syncData) => {
+                           'secondaryColor', 'secondaryBg', 'secondarySize', 'secondaryBold',
+                           'usageFreq'], (syncData) => {
     
+    const usageFreq = syncData.usageFreq || {};
     applyStylesToUI(syncData);
 
     // Get active tab to extract video ID for cache retrieval
@@ -120,7 +122,43 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (detected && Array.isArray(detected) && detected.length > 0) {
+                // Sorting Helper
+                const getLabel = (key, map) => {
+                    const langObj = map?.[key];
+                    if (langObj && langObj.name) return langObj.name;
+                    let baseCode = key;
+                    if (key.endsWith('-cc')) baseCode = key.replace('-cc', '');
+                    else if (key.endsWith('-forced')) baseCode = key.replace('-forced', '');
+                    else if (key.endsWith('-normal')) baseCode = key.replace('-normal', '');
+                    return LANG_NAMES[baseCode.toLowerCase()] || baseCode;
+                };
+
+                const getPriorityScore = (key) => {
+                    if (key.startsWith('zh')) return 300;
+                    if (key.startsWith('en')) return 200;
+                    if (key.startsWith('nl')) return 100;
+                    return 0;
+                };
+
                 const populateSelect = (selectEl, currentVal) => {
+                    const videoMap = (localData.subtitleCache && videoId) ? localData.subtitleCache[videoId]?.map : null;
+                    
+                    // Sort the detected languages
+                    const sortedDetected = [...detected].sort((a, b) => {
+                        // 1. Usage frequency (descending)
+                        const freqDiff = (usageFreq[b] || 0) - (usageFreq[a] || 0);
+                        if (freqDiff !== 0) return freqDiff;
+
+                        // 2. Priority Group (descending)
+                        const prioDiff = getPriorityScore(b) - getPriorityScore(a);
+                        if (prioDiff !== 0) return prioDiff;
+
+                        // 3. Alphabetical (ascending)
+                        const labelA = getLabel(a, videoMap).toLowerCase();
+                        const labelB = getLabel(b, videoMap).toLowerCase();
+                        return labelA.localeCompare(labelB);
+                    });
+
                     selectEl.innerHTML = '';
                     const offOpt = document.createElement('option');
                     offOpt.value = 'none';
@@ -131,10 +169,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Create a map to track what labels we've added to avoid confusion
                     const seenLabels = new Set();
                     
-                    detected.forEach(key => {
-                        const langObj = (localData.subtitleCache && videoId && localData.subtitleCache[videoId]?.map) 
-                                        ? localData.subtitleCache[videoId].map[key] 
-                                        : null;
+                    sortedDetected.forEach(key => {
+                        const langObj = videoMap ? videoMap[key] : null;
                         
                         const opt = document.createElement('option');
                         opt.value = key;
@@ -219,8 +255,20 @@ document.addEventListener('DOMContentLoaded', () => {
       secondaryBold: styles.secondary.bold.classList.contains('active')
     };
     
-    chrome.storage.sync.set(config, () => {
-      window.close();
+    // Update usage frequency
+    chrome.storage.sync.get(['usageFreq'], (data) => {
+        const freq = data.usageFreq || {};
+        if (config.primaryLang !== 'none') {
+            freq[config.primaryLang] = (freq[config.primaryLang] || 0) + 1;
+        }
+        if (config.secondaryLang !== 'none' && config.secondaryLang !== config.primaryLang) {
+            freq[config.secondaryLang] = (freq[config.secondaryLang] || 0) + 1;
+        }
+        config.usageFreq = freq;
+        
+        chrome.storage.sync.set(config, () => {
+          window.close();
+        });
     });
   });
 
