@@ -44,31 +44,33 @@ document.addEventListener('DOMContentLoaded', () => {
   translateUI();
 
   const LANG_NAMES = {
-    "zh-hk": "Chinese (Hong Kong - Cantonese)",
+    "zh-hk": "Chinese (Hong Kong)",
     "zh-hans": "Chinese (Simplified)",
     "zh-hant": "Chinese (Traditional)",
     "da": "Danish",
-    "de": "German",
+    "de": "Deutsch",
     "en": "English",
-    "es-419": "Spanish (Latin America)",
-    "es-es": "Spanish (Spain)",
-    "fr-fr": "French",
+    "en-gb": "English (UK)",
+    "es-419": "Español (Latinoamericano)",
+    "es-es": "Español",
+    "fr-fr": "Français",
     "el": "Greek",
-    "hu": "Hungarian",
-    "it": "Italian",
+    "hu": "Magyar",
+    "is": "Íslenska",
+    "it": "Italiano",
     "ja": "Japanese",
     "ko": "Korean",
-    "nl": "Dutch",
-    "no": "Norwegian",
-    "pl": "Polish",
-    "pt-pt": "Portuguese (Portugal)",
-    "pt-br": "Portuguese (Brazil)",
-    "ro": "Romanian",
+    "nl": "Nederlands",
+    "no": "Norsk",
+    "pl": "Polski",
+    "pt-pt": "Português",
+    "pt-br": "Português (Brasil)",
+    "ro": "Română",
     "sk": "Slovak",
-    "fi": "Finnish",
-    "sv": "Swedish",
-    "tr": "Turkish",
-    "cs": "Czech",
+    "fi": "Suomi",
+    "sv": "Svenska",
+    "tr": "Türkçe",
+    "cs": "Čeština",
     "unknown": "Unknown"
   };
 
@@ -149,20 +151,26 @@ document.addEventListener('DOMContentLoaded', () => {
                             typeSuffix = ' [Forced]';
                         } else if (key.endsWith('-normal')) {
                             baseCode = key.replace('-normal', '');
-                        }
-                        // Handle legacy/fallback keys without suffix (e.g. "zh-hans")
-                        else {
+                        } else {
                             baseCode = key;
                         }
 
-                        if (langObj && langObj.name) {
-                            label = langObj.name;
+                        const friendlyName = LANG_NAMES[baseCode.toLowerCase()] || LANG_NAMES[baseCode.split('-')[0]];
+                        const disneyName = (langObj && langObj.name) ? langObj.name : '';
+                        
+                        // Heuristic: If disneyName looks like a code (e.g. "es-ES--forced--"), prefer friendlyName
+                        const isDisneyNameUgly = disneyName.includes('--') || disneyName.includes('_') || (!isNaN(disneyName.charAt(0)) && disneyName.includes('-'));
+                        
+                        if (friendlyName) {
+                            label = friendlyName;
+                        } else if (disneyName && !isDisneyNameUgly) {
+                            label = disneyName;
                         } else {
-                            label = LANG_NAMES[baseCode.toLowerCase()] || baseCode;
+                            label = baseCode;
                         }
                         
-                        // Append type for clarity if not already in the label from Disney+
-                        if (typeSuffix && !label.includes('[CC]') && !label.includes('CC')) {
+                        // Append type for clarity if not already in the label
+                        if (typeSuffix && !label.includes('[CC]') && !label.includes('CC') && !label.includes('[Forced]') && !label.includes('Forced')) {
                             label += typeSuffix;
                         }
 
