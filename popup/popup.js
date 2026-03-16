@@ -22,6 +22,30 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
+  const subtitleHint = document.getElementById('subtitleHint');
+
+  const updateSubtitleHint = () => {
+    const pVal = primaryLang.value || '';
+    const sVal = secondaryLang.value || '';
+    
+    let msg = '';
+    if (pVal.includes('-forced') || sVal.includes('-forced')) {
+      msg = chrome.i18n.getMessage('forced_hint');
+    } else if (pVal.includes('-cc') || sVal.includes('-cc')) {
+      msg = chrome.i18n.getMessage('cc_hint');
+    }
+
+    if (msg) {
+      subtitleHint.textContent = msg;
+      subtitleHint.classList.remove('hide');
+    } else {
+      subtitleHint.classList.add('hide');
+    }
+  };
+
+  primaryLang.addEventListener('change', updateSubtitleHint);
+  secondaryLang.addEventListener('change', updateSubtitleHint);
+
   const DEFAULT_STYLES = {
     primaryColor: '#ffffff',
     primaryBg: '#00000000', // transparent
@@ -231,6 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 populateSelect(primaryLang, syncData.primaryLang);
                 populateSelect(secondaryLang, syncData.secondaryLang);
+                updateSubtitleHint();
             }
 
             if (syncData.enabled !== undefined) {

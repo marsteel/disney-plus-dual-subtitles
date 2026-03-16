@@ -47,5 +47,13 @@
   "empty_track": {
     "message": "Empty",
     "description": "Hint shown when a track contains no subtitles."
+  },
+  "forced_hint": {
+    "message": "Forced tracks only show during foreign dialogue.",
+    "description": "Explanation for Forced subtitles."
+  },
+  "cc_hint": {
+    "message": "CC tracks include sound effects descriptions.",
+    "description": "Explanation for CC subtitles."
   }
 }
