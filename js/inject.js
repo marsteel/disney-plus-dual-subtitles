@@ -73,22 +73,39 @@
 
   function parseMasterM3u8Subtitles(baseUrl, text) {
      const map = {};
-     // Example: #EXT-X-MEDIA:TYPE=SUBTITLES,GROUP-ID="sub-main",NAME="Chinese (Simplified)",LANGUAGE="zh-Hans",AUTOSELECT=YES,FORCED=NO,CHARACTERISTICS="public.accessibility.transcribes-spoken-dialog",URI="r/composite_zh-Hans_NORMAL_426fea06-308d-4bc1-aec4-8675f73f0cb6_84e1771a-3d45-4b7e-a735-02fbbd246b7e.m3u8"
+     // Example: #EXT-X-MEDIA:TYPE=SUBTITLES,GROUP-ID="sub-main",NAME="Chinese (Simplified)",LANGUAGE="zh-Hans",AUTOSELECT=YES,FORCED=NO,CHARACTERISTICS="public.accessibility.transcribes-spoken-dialog",URI="r/..."
      const lines = text.split('\n');
      const basePath = baseUrl.substring(0, baseUrl.lastIndexOf('/') + 1);
      
      for (const line of lines) {
          if (line.includes('TYPE=SUBTITLES') && line.includes('URI=')) {
-             // Extract language: LANGUAGE="zh-Hans"
+             // Extract optional but useful attributes
              const langMatch = line.match(/LANGUAGE="([^"]+)"/);
-             // Extract URI: URI="r/..."
+             const nameMatch = line.match(/NAME="([^"]+)"/);
              const uriMatch = line.match(/URI="([^"]+)"/);
+             const charMatch = line.match(/CHARACTERISTICS="([^"]+)"/);
+             const forcedMatch = line.match(/FORCED=([^,]+)/);
              
              if (langMatch && uriMatch) {
                  const lang = langMatch[1].toLowerCase();
+                 const name = nameMatch ? nameMatch[1] : '';
+                 const isCC = charMatch ? charMatch[1].includes('transcribes-spoken-dialog') : false;
+                 const isForced = forcedMatch ? forcedMatch[1].toUpperCase() === 'YES' : false;
+                 
                  // Resolve the full URI
                  const fullUri = uriMatch[1].startsWith('http') ? uriMatch[1] : basePath + uriMatch[1];
-                 map[lang] = fullUri;
+                 
+                 // Generate a unique key for the map (e.g. "en-normal", "en-cc")
+                 const type = isCC ? 'cc' : (isForced ? 'forced' : 'normal');
+                 const key = `${lang}-${type}`;
+                 
+                 map[key] = {
+                     url: fullUri,
+                     lang: lang,
+                     name: name,
+                     isCC: isCC,
+                     isForced: isForced
+                 };
              }
          }
      }

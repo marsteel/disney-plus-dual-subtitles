@@ -43,5 +43,17 @@
   "off": {
     "message": "关闭",
     "description": "禁用字幕轨道的选项。"
+  },
+  "empty_track": {
+    "message": "无内容",
+    "description": "当轨道不含字幕时显示的提示。"
+  },
+  "forced_hint": {
+    "message": "强制字幕：仅在出现外语对白或文字标识时显示。",
+    "description": "强制字幕的解释。"
+  },
+  "cc_hint": {
+    "message": "CC 字幕：包含环境音效描述，适合静音观看。",
+    "description": "CC 字幕的解释。"
   }
 }

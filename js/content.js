@@ -15,7 +15,7 @@ let extensionConfig = {
   secondaryBold: true
 };
 
-let subtitleLangMap = {}; // Maps language -> url
+let subtitleLangMap = {}; // Maps key (e.g. "en-cc") -> {url, lang, name, isCC, isForced}
 let m3u8ContentCache = {}; // Cache for .m3u8 text contents
 // Helper for rate limiting
 function sleep(ms) {
@@ -72,9 +72,9 @@ function resetSubtitleState() {
     if (cache[videoId]) {
       console.log("Disney+ Dual Subtitles: Restoring subtitle map from cache for", videoId);
       Object.assign(subtitleLangMap, cache[videoId].map);
+      
+      // Map keys are now composite (lang-type), still save them for popup
       chrome.storage.local.set({ detectedLanguages: Object.keys(subtitleLangMap) });
-      // If extension is enabled, we could trigger loading here, but usually 
-      // a video load will trigger a new master list interception anyway.
     }
   });
 }
@@ -160,11 +160,11 @@ window.addEventListener('message', (event) => {
 
     if (extensionConfig.enabled) {
       // Load Primary
-      if (extensionConfig.primaryLang === 'none') {
-        primarySubs = [];
-      } else {
-        let primaryKey = Object.keys(subtitleLangMap).find(k => k === extensionConfig.primaryLang);
-        if (!primaryKey) primaryKey = Object.keys(subtitleLangMap).find(k => k.startsWith(extensionConfig.primaryLang));
+      if (extensionConfig.primaryLang !== 'none') {
+        const keys = Object.keys(subtitleLangMap);
+        let primaryKey = keys.find(k => k === extensionConfig.primaryLang);
+        if (!primaryKey) primaryKey = keys.find(k => k.startsWith(extensionConfig.primaryLang + '-'));
+        if (!primaryKey) primaryKey = keys.find(k => k.startsWith(extensionConfig.primaryLang));
 
         if (primaryKey) {
           loadSubtitleTarget(subtitleLangMap[primaryKey], 'primary');
@@ -172,11 +172,11 @@ window.addEventListener('message', (event) => {
       }
 
       // Load Secondary
-      if (extensionConfig.secondaryLang === 'none') {
-        secondarySubs = [];
-      } else {
-        let secondaryKey = Object.keys(subtitleLangMap).find(k => k === extensionConfig.secondaryLang);
-        if (!secondaryKey) secondaryKey = Object.keys(subtitleLangMap).find(k => k.startsWith(extensionConfig.secondaryLang));
+      if (extensionConfig.secondaryLang !== 'none') {
+        const keys = Object.keys(subtitleLangMap);
+        let secondaryKey = keys.find(k => k === extensionConfig.secondaryLang);
+        if (!secondaryKey) secondaryKey = keys.find(k => k.startsWith(extensionConfig.secondaryLang + '-'));
+        if (!secondaryKey) secondaryKey = keys.find(k => k.startsWith(extensionConfig.secondaryLang));
 
         if (secondaryKey) {
           loadSubtitleTarget(subtitleLangMap[secondaryKey], 'secondary');
@@ -187,15 +187,29 @@ window.addEventListener('message', (event) => {
   }
 
   if (lang && lang !== 'unknown') {
-    subtitleLangMap[lang] = url;
+    // If it's a fallback detection (single segment), use it as 'normal' type if not already present
+    const key = `${lang}-normal`;
+    if (!subtitleLangMap[key]) {
+        subtitleLangMap[key] = { url, lang, name: '', isCC: false, isForced: false };
+    }
   }
 
   if (extensionConfig.enabled) {
     let target = null;
     // Try exact match first, then fallback to startsWith
     if (lang !== 'unknown') {
-      if (lang === extensionConfig.secondaryLang || lang.startsWith(extensionConfig.secondaryLang)) target = 'secondary';
-      else if (lang === extensionConfig.primaryLang || lang.startsWith(extensionConfig.primaryLang)) target = 'primary';
+      const keys = Object.keys(subtitleLangMap);
+      // Try exact key first
+      let targetKey = keys.find(k => k === extensionConfig.secondaryLang);
+      if (!targetKey) targetKey = keys.find(k => k === extensionConfig.primaryLang);
+      
+      // Fallback to lang code logic
+      if (!targetKey) {
+          if (lang === extensionConfig.secondaryLang || lang.startsWith(extensionConfig.secondaryLang)) target = 'secondary';
+          else if (lang === extensionConfig.primaryLang || lang.startsWith(extensionConfig.primaryLang)) target = 'primary';
+      } else {
+          target = (targetKey === extensionConfig.secondaryLang) ? 'secondary' : 'primary';
+      }
     }
 
     if (!target && url.includes('.vtt')) {
@@ -331,7 +345,11 @@ function injectHideNativeCSS() {
   document.head.appendChild(style);
 }
 
-async function loadSubtitleTarget(url, target = 'secondary', skipClear = false) {
+async function loadSubtitleTarget(targetInput, target = 'secondary', skipClear = false) {
+  // targetInput can be a URL string (backward compat) or our new metadata object
+  const url = typeof targetInput === 'string' ? targetInput : targetInput?.url;
+  if (!url) return;
+
   console.log(`Disney+ Dual Subtitles: Loading ${target} subtitles (skipClear=${skipClear}) for language [${target === 'primary' ? extensionConfig.primaryLang : extensionConfig.secondaryLang}] from:`, url);
 
   if (!skipClear) {
@@ -425,6 +443,7 @@ async function parseM3u8(baseUrl, m3u8Text, target = 'secondary', intendedLang =
 
   let allCues = [];
   let segmentsProcessed = 0;
+  let emptySegments = 0;
 
   // Priority sorting: segments AFTER current time first, then segments before.
   const video = getActiveVideo();
@@ -471,6 +490,11 @@ async function parseM3u8(baseUrl, m3u8Text, target = 'secondary', intendedLang =
       const segText = await segRes.text();
 
       const cues = parseVTT(segText, segment.offset, segment.url);
+      if (cues.length === 0) {
+        emptySegments++;
+        // Low-level log for developers to see it's intentional
+        // console.log(`Disney+ Dual Subtitles: Segment ${segment.url} is empty (Normal for Forced tracks).`);
+      }
       allCues = allCues.concat(cues);
 
       segmentsProcessed++;
@@ -509,6 +533,33 @@ async function parseM3u8(baseUrl, m3u8Text, target = 'secondary', intendedLang =
     if (addedCount > 0) {
       console.log(`Disney+ Dual Subtitles: Final flush: Loaded ${addedCount} cues for ${target} (Total: ${targetArray.length})`);
     }
+  }
+
+  // After processing everything (or a large chunk), check if it's suspiciously empty or has content
+  const targetArray = target === 'primary' ? primarySubs : secondarySubs;
+  const langKey = target === 'primary' ? extensionConfig.primaryLang : extensionConfig.secondaryLang;
+  const videoId = getDisneyVideoId();
+
+  if (videoId && langKey) {
+    chrome.storage.local.get(['subtitleCache'], (data) => {
+        const cache = data.subtitleCache || {};
+        if (cache[videoId] && cache[videoId].map && cache[videoId].map[langKey]) {
+            const currentObj = cache[videoId].map[langKey];
+            
+            // If we found cues, ensure isEmpty is false
+            if (targetArray.length > 0 && currentObj.isEmpty) {
+                currentObj.isEmpty = false;
+                chrome.storage.local.set({ subtitleCache: cache });
+                console.log(`Disney+ Dual Subtitles: [Info] Track [${langKey}] is no longer empty. Clearing flag.`);
+            } 
+            // If still empty after a significant number of segments, set isEmpty
+            else if (segmentsProcessed > 5 && targetArray.length === 0 && !currentObj.isEmpty) {
+                currentObj.isEmpty = true;
+                chrome.storage.local.set({ subtitleCache: cache });
+                console.warn(`Disney+ Dual Subtitles: [Warning] Track [${langKey}] is entirely empty after ${segmentsProcessed} segments. Flagging as empty.`);
+            }
+        }
+    });
   }
 
   console.log(`Disney+ Dual Subtitles: Finished loading all ${target} segments.`);

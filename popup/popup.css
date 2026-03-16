@@ -203,3 +203,18 @@ input:checked + .slider:before {
 .slider.round:before {
   border-radius: 50%;
 }
+
+.subtitle-hint {
+  font-size: 11px;
+  color: #aaa;
+  background-color: #2a2e3e;
+  padding: 8px;
+  border-radius: 4px;
+  line-height: 1.4;
+  margin-top: 5px;
+  border-left: 3px solid #0072d2;
+}
+
+.hide {
+  display: none;
+}
