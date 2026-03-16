@@ -535,23 +535,31 @@ async function parseM3u8(baseUrl, m3u8Text, target = 'secondary', intendedLang =
     }
   }
 
-  // After processing everything (or a large chunk), check if it's suspiciously empty
+  // After processing everything (or a large chunk), check if it's suspiciously empty or has content
   const targetArray = target === 'primary' ? primarySubs : secondarySubs;
-  if (segmentsProcessed > 5 && targetArray.length === 0) {
-    const langKey = target === 'primary' ? extensionConfig.primaryLang : extensionConfig.secondaryLang;
-    console.warn(`Disney+ Dual Subtitles: [Warning] Track for ${target} [${langKey}] is entirely empty after ${segmentsProcessed} segments. This is common for "FORCED" tracks.`);
-    
-    // Save this state to cache so popup can show a hint
-    const videoId = getDisneyVideoId();
-    if (videoId && langKey) {
-        chrome.storage.local.get(['subtitleCache'], (data) => {
-            const cache = data.subtitleCache || {};
-            if (cache[videoId] && cache[videoId].map && cache[videoId].map[langKey]) {
-                cache[videoId].map[langKey].isEmpty = true;
+  const langKey = target === 'primary' ? extensionConfig.primaryLang : extensionConfig.secondaryLang;
+  const videoId = getDisneyVideoId();
+
+  if (videoId && langKey) {
+    chrome.storage.local.get(['subtitleCache'], (data) => {
+        const cache = data.subtitleCache || {};
+        if (cache[videoId] && cache[videoId].map && cache[videoId].map[langKey]) {
+            const currentObj = cache[videoId].map[langKey];
+            
+            // If we found cues, ensure isEmpty is false
+            if (targetArray.length > 0 && currentObj.isEmpty) {
+                currentObj.isEmpty = false;
                 chrome.storage.local.set({ subtitleCache: cache });
+                console.log(`Disney+ Dual Subtitles: [Info] Track [${langKey}] is no longer empty. Clearing flag.`);
+            } 
+            // If still empty after a significant number of segments, set isEmpty
+            else if (segmentsProcessed > 5 && targetArray.length === 0 && !currentObj.isEmpty) {
+                currentObj.isEmpty = true;
+                chrome.storage.local.set({ subtitleCache: cache });
+                console.warn(`Disney+ Dual Subtitles: [Warning] Track [${langKey}] is entirely empty after ${segmentsProcessed} segments. Flagging as empty.`);
             }
-        });
-    }
+        }
+    });
   }
 
   console.log(`Disney+ Dual Subtitles: Finished loading all ${target} segments.`);
