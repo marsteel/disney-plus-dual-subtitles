@@ -210,6 +210,12 @@ document.addEventListener('DOMContentLoaded', () => {
                             label += typeSuffix;
                         }
 
+                        // Append (Empty) hint if track is known to be empty
+                        if (langObj && langObj.isEmpty) {
+                            const emptyHint = chrome.i18n.getMessage('empty_track');
+                            if (emptyHint) label += ` (${emptyHint})`;
+                        }
+
                         opt.textContent = label;
                         if (key === currentVal) opt.selected = true;
                         

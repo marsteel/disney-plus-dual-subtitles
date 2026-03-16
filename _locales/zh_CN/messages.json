@@ -43,5 +43,9 @@
   "off": {
     "message": "关闭",
     "description": "禁用字幕轨道的选项。"
+  },
+  "empty_track": {
+    "message": "无内容",
+    "description": "当轨道不含字幕时显示的提示。"
   }
 }

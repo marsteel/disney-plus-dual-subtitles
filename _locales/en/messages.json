@@ -43,5 +43,9 @@
   "off": {
     "message": "Off",
     "description": "Option to disable a subtitle track."
+  },
+  "empty_track": {
+    "message": "Empty",
+    "description": "Hint shown when a track contains no subtitles."
   }
 }

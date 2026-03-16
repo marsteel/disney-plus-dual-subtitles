@@ -443,6 +443,7 @@ async function parseM3u8(baseUrl, m3u8Text, target = 'secondary', intendedLang =
 
   let allCues = [];
   let segmentsProcessed = 0;
+  let emptySegments = 0;
 
   // Priority sorting: segments AFTER current time first, then segments before.
   const video = getActiveVideo();
@@ -489,6 +490,11 @@ async function parseM3u8(baseUrl, m3u8Text, target = 'secondary', intendedLang =
       const segText = await segRes.text();
 
       const cues = parseVTT(segText, segment.offset, segment.url);
+      if (cues.length === 0) {
+        emptySegments++;
+        // Low-level log for developers to see it's intentional
+        // console.log(`Disney+ Dual Subtitles: Segment ${segment.url} is empty (Normal for Forced tracks).`);
+      }
       allCues = allCues.concat(cues);
 
       segmentsProcessed++;
@@ -526,6 +532,25 @@ async function parseM3u8(baseUrl, m3u8Text, target = 'secondary', intendedLang =
     targetArray.sort((a, b) => a.start - b.start);
     if (addedCount > 0) {
       console.log(`Disney+ Dual Subtitles: Final flush: Loaded ${addedCount} cues for ${target} (Total: ${targetArray.length})`);
+    }
+  }
+
+  // After processing everything (or a large chunk), check if it's suspiciously empty
+  const targetArray = target === 'primary' ? primarySubs : secondarySubs;
+  if (segmentsProcessed > 5 && targetArray.length === 0) {
+    const langKey = target === 'primary' ? extensionConfig.primaryLang : extensionConfig.secondaryLang;
+    console.warn(`Disney+ Dual Subtitles: [Warning] Track for ${target} [${langKey}] is entirely empty after ${segmentsProcessed} segments. This is common for "FORCED" tracks.`);
+    
+    // Save this state to cache so popup can show a hint
+    const videoId = getDisneyVideoId();
+    if (videoId && langKey) {
+        chrome.storage.local.get(['subtitleCache'], (data) => {
+            const cache = data.subtitleCache || {};
+            if (cache[videoId] && cache[videoId].map && cache[videoId].map[langKey]) {
+                cache[videoId].map[langKey].isEmpty = true;
+                chrome.storage.local.set({ subtitleCache: cache });
+            }
+        });
     }
   }
 
