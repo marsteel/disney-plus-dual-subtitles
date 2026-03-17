@@ -22,6 +22,31 @@
       <h1>Changelog</h1>
       <p class="hero-subtitle">Version history and release notes for Disney+ Dual Subtitles extension.</p>
     </header>
+
+    <div class="notice-box">
+      <div style="font-weight: 700; margin-bottom: 0.5rem; color: var(--accent);">⚠️ Important Notice</div>
+      <p>Due to unpredictable changes in the video platform's architecture, the extension may occasionally stop working. If you encounter issues, please try <strong>reloading the webpage</strong>. If subtitles fail to appear, please try <strong>reloading the entire browser page</strong>.</p>
+      <p style="margin-top: 0.5rem;">The extension operates with <strong>minimal permissions</strong>. Future versions may request additional permissions as needed. If the extension is disabled due to a permission update, please manually re-enable it; this is a standard browser security procedure and does not mean the extension is harmful.</p>
+      <p style="margin-top: 0.5rem;">The author maintains this project on a best-effort basis. Your feedback is valuable—please report any issues on the <a href="https://github.com/marsteel/disney-plus-dual-subtitles/issues" target="_blank" style="color: var(--accent);">GitHub Issues</a> page.</p>
+    </div>
+
+    <div class="version">
+      <div class="version-header">
+        <span class="version-number">v1.3.0</span>
+        <span class="version-date">March 15, 2026</span>
+      </div>
+      <div class="version-content">
+        <h3>🎯 Accuracy & Stability Fixes</h3>
+        <ul>
+          <li><strong>Timeline Sync (Anti-Drift)</strong>: Implemented auto-detection for absolute vs. relative VTT files, fixing a major 7.5-minute subtitle drift issue.</li>
+          <li><strong>Optimized Preloading</strong>: Rewrote the download engine to prioritize segments nearest to the playhead, ensuring instant subtitles after seeking or language switching.</li>
+          <li><strong>Extension Context Safeguards</strong>: Prevented "Extension context invalidated" errors by adding validity checks to all browser API calls.</li>
+          <li><strong>Robust VTT Parsing</strong>: Added explicit support for skipping non-cue blocks like <code>STYLE</code> and <code>NOTE</code> in subtitle assets.</li>
+          <li><strong>Host Permissions</strong>: Added support for Disney's subtitle delivery domains (dssott.com) to ensure unblocked access.</li>
+          <li><strong>Smart Changelog Popup</strong>: The changelog now only appears when the extension version actually changes, avoiding popups during local reloads or simple updates.</li>
+        </ul>
+      </div>
+    </div>
     <div class="version">
       <div class="version-header">
         <span class="version-number">v1.2.1</span>
