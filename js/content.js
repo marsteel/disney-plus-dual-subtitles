@@ -538,7 +538,7 @@ async function parseM3u8(baseUrl, m3u8Text, target = 'secondary', intendedLang =
   // After processing everything (or a large chunk), check if it's suspiciously empty or has content
   const targetArray = target === 'primary' ? primarySubs : secondarySubs;
   const langKey = target === 'primary' ? extensionConfig.primaryLang : extensionConfig.secondaryLang;
-  const videoId = getDisneyVideoId();
+  const videoId = getVideoId();
 
   if (videoId && langKey) {
     chrome.storage.local.get(['subtitleCache'], (data) => {
