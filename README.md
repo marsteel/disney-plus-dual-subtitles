@@ -3,6 +3,7 @@
 [![Version](https://img.shields.io/badge/version-1.3.0-blue.svg)](manifest.json)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Browser](https://img.shields.io/badge/Chromium-Supported-success.svg)](https://www.google.com/chrome/)
+[![Chrome Web Store](https://img.shields.io/chrome-web-store/v/nkidlbnenlhfjbgpinebodghbocmdpdh?label=chrome%20web%20store)]((https://chromewebstore.google.com/detail/disney+-dual-subtitles/nkidlbnenlhfjbgpinebodghbocmdpdh))
 
 A high-performance Chrome & Edge extension designed for a premium **dual-subtitle experience** on Disney+. It addresses unique platform challenges like sliding-window manifests, synchronization drift, and layout jitter to provide a seamless, Hollywood-standard viewing experience.
 
