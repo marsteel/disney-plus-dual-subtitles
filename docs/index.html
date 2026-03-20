@@ -81,6 +81,7 @@
             <a href="https://chromewebstore.google.com/detail/disney+-dual-subtitles/nkidlbnenlhfjbgpinebodghbocmdpdh" class="btn" target="_blank" style="flex: 1;">
               <i class="fa-brands fa-chrome"></i>
               <span>Chrome</span>
+              <span id="chrome-version" style="margin-left: auto; padding: 2px 8px; background: rgba(255,255,255,0.2); border-radius: 12px; font-size: 11px;">...</span>
             </a>
           </div>
           <a href="https://github.com/marsteel/disney-plus-dual-subtitles" class="btn btn-secondary">
@@ -104,6 +105,23 @@
     function googleTranslateElementInit() {
       new google.translate.TranslateElement({pageLanguage: 'en', layout: google.translate.TranslateElement.InlineLayout.SIMPLE}, 'google_translate_element');
     }
+
+    async function fetchChromeVersion() {
+      try {
+        const response = await fetch('https://img.shields.io/chrome-web-store/v/nkidlbnenlhfjbgpinebodghbocmdpdh.json');
+        const data = await response.json();
+        if (data && data.value) {
+          document.getElementById('chrome-version').textContent = data.value;
+        }
+      } catch (error) {
+        console.log('Could not fetch Chrome version:', error);
+        document.getElementById('chrome-version').style.display = 'none';
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      fetchChromeVersion();
+    });
   </script>
   <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body>
