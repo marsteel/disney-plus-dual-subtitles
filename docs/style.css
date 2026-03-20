@@ -88,6 +88,30 @@ h1 {
   gap: 8px;
 }
 
+/* Two-Column Layout */
+.main-content {
+  display: block;
+}
+
+@media (min-width: 1024px) {
+  .main-content {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+    gap: 40px;
+    align-items: start;
+  }
+}
+
+.content-left {
+  order: 1;
+}
+
+.content-right {
+  order: 2;
+  position: sticky;
+  top: 40px;
+}
+
 .features-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
@@ -136,7 +160,6 @@ h1 {
   background-color: var(--install-card-bg);
   padding: 30px;
   border-radius: 16px;
-  margin-top: 40px;
 }
 
 .btn {
