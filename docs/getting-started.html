@@ -8,6 +8,63 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    .support-card {
+      background: linear-gradient(135deg, #ffffff 0%, #f0f4ff 100%);
+      border: 1px solid #e0e7ff;
+      border-radius: 20px;
+      padding: 40px;
+      margin-top: 60px;
+      text-align: center;
+      box-shadow: 0 10px 25px rgba(74, 108, 247, 0.05);
+      position: relative;
+      overflow: hidden;
+    }
+    .support-card::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(74, 108, 247, 0.03) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .support-card h2 {
+      color: var(--accent-blue);
+      margin-top: 0;
+      font-size: 1.8rem;
+    }
+    .support-card p {
+      color: var(--text-muted);
+      max-width: 500px;
+      margin: 0 auto 24px;
+      line-height: 1.6;
+    }
+    .rating-buttons {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .btn-rating {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .btn-rating:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    .btn-chrome { background: #374151; color: white; }
+    .btn-edge { background: #4a6cf7; color: white; }
+  </style>
 </head>
 <body>
   <div class="main-container">
@@ -63,6 +120,20 @@
       <div style="font-weight: 700; margin-bottom: 0.5rem; color: var(--accent-blue);">💡 Smart Features</div>
       <p><strong>Intelligent Ranking:</strong> Your most used languages move to the top automatically!</p>
       <p><strong>Dynamic Hints:</strong> If a selected track (like Forced) has no content for the current scene, a hint will appear in the popup to let you know.</p>
+    </div>
+
+    <div class="support-card">
+      <div style="font-size: 3rem; margin-bottom: 1rem;">🌟</div>
+      <h2>Enjoying the extension?</h2>
+      <p>If you find Disney+ Dual Subtitles helpful, please consider leaving a 5-star rating. It helps us grow and keep the project alive!</p>
+      <div class="rating-buttons">
+        <a href="https://chromewebstore.google.com/detail/disney+-dual-subtitles/nkidlbnenlhfjbgpinebodghbocmdpdh" target="_blank" class="btn-rating btn-chrome">
+          <i class="fa-brands fa-chrome"></i> Rate on Chrome
+        </a>
+        <a href="https://microsoftedge.microsoft.com/addons/detail/disney-dual-subtitles/ofilfocogplmlhcoaakbccojffdjaono" target="_blank" class="btn-rating btn-edge">
+          <i class="fa-brands fa-edge"></i> Rate on Edge
+        </a>
+      </div>
     </div>
 
     <div class="install-section">
